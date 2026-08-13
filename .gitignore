@@ -1,0 +1,29 @@
+.DS_Store
+**/.DS_Store
+
+# Local copyrighted PDFs (BDA3 etc.)
+literature/*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Stan / CmdStan compile artifacts
+.cmdstan/
+stan_models/
+cmdstan-*/
+bridgestan-*/
+*.hpp
+*.o
+*.so
+
+# Notebooks
+.ipynb_checkpoints/

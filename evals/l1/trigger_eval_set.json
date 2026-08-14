@@ -1,0 +1,27 @@
+{
+  "notes": "Description-only labels. No 0.9 pass/fail. Inspect Stan-vs-JAX confusion before splitting the skill. Do not put these prompts in SKILL.md.",
+  "positives": [
+    {"id": "p-stan-1", "engine": "stan", "text": "Write a CmdStanPy hierarchical model for 8 schools and check divergences."},
+    {"id": "p-stan-2", "engine": "stan", "text": "My .stan file has a lower=0 scale. Do I need a Jacobian?"},
+    {"id": "p-stan-3", "engine": "stan", "text": "Run cmdstan diagnose and interpret treedepth and E-BFMI."},
+    {"id": "p-stan-4", "engine": "stan", "text": "Put posterior predictive draws in generated quantities, not numpy."},
+    {"id": "p-stan-5", "engine": "stan", "text": "Sample this GLM with nutpie[stan] if BridgeStan works, else CmdStanPy."},
+    {"id": "p-jax-1", "engine": "jax", "text": "Write a JAX logdensity_fn with constrain and Jacobian, then BlackJAX NUTS."},
+    {"id": "p-jax-2", "engine": "jax", "text": "vmap generated quantities for a JAX posterior predictive check into ArviZ."},
+    {"id": "p-jax-3", "engine": "jax", "text": "BlackJAX NUTS on a custom unconstrained log density for a logistic model."},
+    {"id": "p-either-1", "engine": "unspecified", "text": "Fit a hierarchical logistic regression, check R-hat and ESS, write report.md."},
+    {"id": "p-either-2", "engine": "unspecified", "text": "Prior predictive before MCMC, then PSIS-LOO, then a Bayesian report."},
+    {"id": "p-either-3", "engine": "unspecified", "text": "We have grouped counts; I need partial pooling and divergence checks."},
+    {"id": "p-either-4", "engine": "unspecified", "text": "Compare two Bayesian models with ELPD and stacking weights."}
+  ],
+  "negatives": [
+    {"id": "n-pymc-1", "turf": "pymc", "text": "Write this model in PyMC 6 with coords and pm.Bernoulli."},
+    {"id": "n-pymc-2", "turf": "pymc", "text": "Use PreliZ to elicit a PyMC prior and sample with nuts_sampler nutpie."},
+    {"id": "n-causal-1", "turf": "causal", "text": "What is the backdoor adjustment set on this DAG?"},
+    {"id": "n-causal-2", "turf": "causal", "text": "Difference-in-differences with parallel trends and a placebo test."},
+    {"id": "n-causal-3", "turf": "causal", "text": "RDD at the scholarship cutoff; estimate the LATE."},
+    {"id": "n-sbi-1", "turf": "sbi", "text": "Train a BayesFlow amortized posterior estimator for this simulator."},
+    {"id": "n-sbi-2", "turf": "sbi", "text": "Simulation-based inference with no tractable likelihood."},
+    {"id": "n-other-1", "turf": "other", "text": "sklearn RandomForest feature importances on this CSV."}
+  ]
+}

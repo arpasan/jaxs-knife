@@ -9,9 +9,8 @@ v0 does not clone amortized-workflow.
 
 ## Status
 
-Research constitution is complete (science, stack, eval layers). Skill files
-(`SKILL.md`, `references/`, `scripts/`) are not written yet. Implementation
-starts after the plan is approved.
+v0 skill lives in `stan-jax-workflow/`. L0 tests: `pytest`. L1 labels:
+`evals/l1/`. Live Stan smoke is optional (`evals/smoke/mini_normal.py`).
 
 Working title `standoff-bayes` is fine for this private repo.
 

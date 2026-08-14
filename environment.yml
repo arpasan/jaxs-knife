@@ -1,0 +1,17 @@
+name: standoff-bayes
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - cmdstanpy>=1.3.0
+  - arviz
+  - arviz-stats
+  - numpy
+  - xarray
+  - pytest
+  - pip
+  - pip:
+      - "nutpie[stan]>=0.16.11"
+      - "blackjax>=1.6.2"
+      - jax
+      - "bridgestan>=2.9.0"

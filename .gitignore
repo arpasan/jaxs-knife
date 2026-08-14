@@ -28,3 +28,7 @@ bridgestan-*/
 
 # Notebooks
 .ipynb_checkpoints/
+
+# Live smoke compile tree and inspection gallery
+evals/smoke/_work/
+evals/smoke/artifacts/

@@ -23,6 +23,7 @@ def from_cmdstanpy(
     *,
     posterior_predictive: Optional[list[str]] = None,
     log_likelihood: Optional[list[str]] = None,
+    observed_data: Optional[Mapping[str, NDArray[Any]]] = None,
     logger: Optional[logging.Logger] = None,
 ) -> Any:
     """Wrap a CmdStanPy ``CmdStanMCMC`` (or compatible) fit as InferenceData.
@@ -36,6 +37,8 @@ def from_cmdstanpy(
     log_likelihood : list[str], optional
         GQ names for pointwise log likelihood. Defaults to ``log_lik`` /
         ``log_likelihood`` if present.
+    observed_data : Mapping[str, NDArray], optional
+        Observed responses for PPC / calibration.
     logger : logging.Logger, optional
         Injected logger.
 
@@ -63,6 +66,7 @@ def from_cmdstanpy(
         posterior=fit,
         posterior_predictive=pp or None,
         log_likelihood=ll or None,
+        observed_data=dict(observed_data) if observed_data is not None else None,
     )
 
 

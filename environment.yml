@@ -9,6 +9,10 @@ dependencies:
   - numpy
   - xarray
   - pytest
+  - matplotlib
+  - seaborn
+  - h5netcdf
+  - h5py
   - pip
   - pip:
       - "nutpie[stan]>=0.16.11"

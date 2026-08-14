@@ -1,5 +1,5 @@
 {
-  "notes": "Description-only labels. No 0.9 pass/fail. Inspect Stan-vs-JAX confusion before splitting the skill. Do not put these prompts in SKILL.md.",
+  "notes": "Description-only trigger labels. These prompts are not copied into SKILL.md.",
   "positives": [
     {"id": "p-stan-1", "engine": "stan", "text": "Write a CmdStanPy hierarchical model for 8 schools and check divergences."},
     {"id": "p-stan-2", "engine": "stan", "text": "My .stan file has a lower=0 scale. Do I need a Jacobian?"},

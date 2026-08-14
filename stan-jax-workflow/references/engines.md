@@ -20,7 +20,7 @@ nutpie does **not** run generated quantities. After nutpie NUTS, either run CmdS
 
 ## When to write JAX
 
-GPU density, SVI, a density Stan cannot express, or a new sampler (BlackJAX). Write the log-density **like Stan** (Carpenter 2025; Ward gist):
+GPU density, SVI, a density Stan cannot express, or a new sampler (BlackJAX). Write the log-density **like Stan** (constrain, Jacobian, logp, `vmap` GQ):
 
 1. Unconstrained parameters in, `constrain` out.
 2. Add `log|det J|` of the constraint.
@@ -36,8 +36,8 @@ NumPyro is optional when plates help. Override the classic 8-schools HalfCauchy 
 - Transpile Stan → XLA.
 - Treat BridgeStan + JAX callbacks as a `jit`/`gpu` Stan path (grads stay C++).
 - Report Pathfinder / Laplace as the posterior unless the user asked for an approximation.
-- Rewrite a Stan-shaped GLM in NumPyro for fashion.
-- Clone BayesFlow / amortized-workflow.
+- Rewrite a Stan-shaped GLM in NumPyro without a reason the Stan language cannot express.
+- Likelihood-free / simulation-based inference (no tractable likelihood).
 
 ## Conversion
 

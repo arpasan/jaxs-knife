@@ -1,29 +1,56 @@
 # standoff-bayes
 
-Private bakeoff for an opinionated **Stan and JAX** Bayesian Agent Skill
-(CmdStanPy / nutpie[stan] / BlackJAX), workflow-first, ArviZ as the shared
-posterior object.
+An opinionated [Agent Skill](https://agentskills.io) for Bayesian modeling
+with Stan (CmdStanPy / nutpie) and JAX (log-density + BlackJAX). Both engines
+land in ArviZ `InferenceData` and share one diagnose → calibrate → report
+pipeline.
 
-This is not a fork of [baygent-skills](https://github.com/Learning-Bayesian-Statistics/baygent-skills).
-v0 does not clone amortized-workflow.
+Compatible with Cursor and any agent that supports the
+[Agent Skills spec](https://agentskills.io/specification).
 
-## Status
+## What it does
 
-v0 skill lives in `stan-jax-workflow/`. L0 tests: `pytest`. L1 labels:
-`evals/l1/`. Live Stan smoke is optional (`evals/smoke/mini_normal.py`).
+1. Formulate the generative story
+2. Specify weakly informative, justified priors
+3. Implement in Stan or JAX (see the engine table in the skill)
+4. Prior predictive checks before sampling
+5. Inference (nutpie on Stan when the toolchain works; otherwise CmdStanPy;
+   BlackJAX on a JAX log-density)
+6. Convergence diagnostics (R-hat, ESS, divergences, energy, treedepth)
+7. Model criticism (PPC in generated quantities or `vmap`, PSIS-LOO, calibration)
+8. Prior sensitivity when conclusions are decision-relevant
+9. Model comparison (PSIS-LOO, stacking)
+10. A canonical `<slug>/report.md` whose ratings come from scripts, not vibes
 
-Working title `standoff-bayes` is fine for this private repo.
+## Install
 
-## v0 intent
+```bash
+mamba env create -f environment.yml
+python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.39.0')"
+```
 
-- **Stan stays.** JAX is a peer engine, not a replacement.
-- Same Gelman–Vehtari sequence on both engines.
-- nutpie[stan] is faster NUTS on a Stan model when BridgeStan is available;
-  otherwise CmdStanPy NUTS.
-- JAX path: write the log-density like Stan (constrain, Jacobian, `vmap`
-  generated quantities) + BlackJAX. Do not transpile Stan to XLA.
-- Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
+Copy or symlink `stan-jax-workflow/` into the agent's skills directory
+(for Cursor: `.cursor/skills/` in the project, or `~/.cursor/skills/`).
 
-## Local notes
+## Tests
 
-`literature/` may hold local PDFs. They are gitignored (copyright).
+```bash
+python -m pytest evals/l0
+python evals/smoke/mini_normal.py
+```
+
+`evals/l0` checks the diagnostic JSON contract on known-good and known-bad
+traces. `evals/smoke/mini_normal.py` runs live CmdStanPy NUTS when CmdStan is
+installed.
+
+## Layout
+
+```
+stan-jax-workflow/     Agent Skill (SKILL.md, references/, scripts/)
+evals/                 Tests and scenario prompts (not part of the skill)
+environment.yml        Conda environment
+```
+
+## License
+
+MIT

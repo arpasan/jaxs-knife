@@ -1,8 +1,8 @@
 .DS_Store
 **/.DS_Store
 
-# Local copyrighted PDFs (BDA3 etc.)
-literature/*.pdf
+# Local research materials (not part of the project)
+literature/
 
 # Python
 __pycache__/

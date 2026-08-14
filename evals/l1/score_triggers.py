@@ -115,12 +115,12 @@ def _split_signal(engine_hits: Dict[str, Dict[str, int]], false_alarms: List[str
     stan = engine_hits.get("stan", {"hit": 0, "n": 0})
     jax = engine_hits.get("jax", {"hit": 0, "n": 0})
     if stan["n"] and jax["n"] and stan["hit"] == stan["n"] and jax["hit"] == 0:
-        return "JAX-only prompts systematically miss — consider a split"
+        return "JAX-only prompts systematically miss"
     if stan["n"] and jax["n"] and jax["hit"] == jax["n"] and stan["hit"] == 0:
-        return "Stan-only prompts systematically miss — consider a split"
+        return "Stan-only prompts systematically miss"
     if false_alarms:
-        return "False positives on the negative set — tighten the description, do not split yet"
-    return "No split pattern on this heuristic"
+        return "False positives on the negative set — tighten the description"
+    return "No engine-specific miss pattern"
 
 
 def main() -> None:

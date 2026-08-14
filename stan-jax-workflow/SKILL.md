@@ -33,7 +33,7 @@ Every analysis follows this sequence. Do not skip criticism.
 
 ## Engine decision
 
-Stan stays. JAX is a peer, not a replacement. Do not transpile Stan to XLA. Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
+Do not transpile Stan to XLA. Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
 
 | If | Then |
 |---|---|
@@ -41,7 +41,7 @@ Stan stays. JAX is a peer, not a replacement. Do not transpile Stan to XLA. Do n
 | GPU density, SVI, custom MCMC, or a density Stan cannot express | Write a JAX log-density **like Stan** (constrain, Jacobian, logp, `vmap` GQ) + **BlackJAX**. NumPyro only if plates help. |
 | Same science, two engines | Stan MCMC as gold standard; JAX as the other. Compare in ArviZ. Do not require bit-identical posteriors. |
 | Horrible geometry / slow warmup | Pathfinder or nutpie low-rank+diag mass matrix, **then NUTS**. Label Pathfinder/Laplace as approximations. |
-| Simulator, no tractable likelihood | Out of scope. Do not fake ABC. Do not clone BayesFlow. |
+| Simulator, no tractable likelihood | Out of scope. Do not substitute ABC. |
 
 ## Installation
 

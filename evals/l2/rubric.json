@@ -1,0 +1,52 @@
+{
+  "name": "portable-workflow",
+  "version": "1.0",
+  "notes": "Engine-agnostic. Do not add API-locked predicates. Do not copy this file into the skill or into an agent workspace.",
+  "band_a": [
+    {
+      "id": "report_exists",
+      "need": "report.md (any path) is present"
+    },
+    {
+      "id": "limitations",
+      "need": "a limitations or threats section"
+    },
+    {
+      "id": "probability_language",
+      "need": "no p-value / significance language"
+    },
+    {
+      "id": "intervals_50_94",
+      "need": "both a 50% typical interval and a 94% range (HDI)"
+    },
+    {
+      "id": "prior_predictive",
+      "need": "prior predictive check before sampling"
+    },
+    {
+      "id": "rhat_1_01",
+      "need": "rank-normalized R-hat threshold 1.01"
+    },
+    {
+      "id": "refuse_divergences",
+      "need": "if divergences exist, refuse to interpret; if none, say so"
+    },
+    {
+      "id": "draws_saved",
+      "need": "posterior draws written to disk"
+    },
+    {
+      "id": "gq_or_vmap",
+      "need": "PPC in generated quantities (Stan) or vmap (JAX), not a numpy rewrite of the likelihood"
+    },
+    {
+      "id": "constraint_ok",
+      "need": "positive scales via constrained declaration or an explicit Jacobian"
+    }
+  ],
+  "band_b": {
+    "nominal": 0.94,
+    "max_abs_coverage_error": 0.05,
+    "need": "nominal HDI contains each listed true parameter"
+  }
+}

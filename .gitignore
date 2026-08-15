@@ -32,3 +32,7 @@ bridgestan-*/
 # Live smoke compile tree and inspection gallery
 evals/smoke/_work/
 evals/smoke/artifacts/
+
+# L2 agent workspaces and local comparison dumps
+evals/l2/local_runs/
+evals/compare/

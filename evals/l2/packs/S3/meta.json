@@ -1,0 +1,5 @@
+{
+  "id": "S3",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"]
+}

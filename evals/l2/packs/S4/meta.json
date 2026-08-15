@@ -1,0 +1,10 @@
+{
+  "id": "S4",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "alpha": 0.1,
+    "beta": 0.7,
+    "sigma": 0.2
+  }
+}

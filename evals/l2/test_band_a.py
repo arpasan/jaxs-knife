@@ -1,0 +1,30 @@
+"""Band A grader on sealed fixtures (no live agent)."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from band_a import evaluate_band_a
+
+FIX = Path(__file__).resolve().parent / "fixtures"
+
+
+def test_pass_fixture_clears_band_a() -> None:
+    report = evaluate_band_a(FIX / "pass_workflow")
+    failed = [p["id"] for p in report["predicates"] if not p["ok"]]
+    assert report["passed"] is True, failed
+
+
+def test_fail_fixture_is_caught() -> None:
+    report = evaluate_band_a(FIX / "fail_workflow")
+    assert report["passed"] is False
+    by_id = {p["id"]: p["ok"] for p in report["predicates"]}
+    assert by_id["probability_language"] is False
+    assert by_id["intervals_50_94"] is False
+    assert by_id["limitations"] is False
+    assert by_id["refuse_divergences"] is False
+    assert by_id["gq_or_vmap"] is False
+    assert by_id["prior_predictive"] is False
+    assert by_id["rhat_1_01"] is False
+    assert by_id["draws_saved"] is False
+    assert by_id["constraint_ok"] is False

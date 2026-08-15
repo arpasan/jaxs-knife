@@ -1,0 +1,5 @@
+{
+  "id": "S5",
+  "engine": "stan",
+  "copy_to_agent": ["prompt.md", "data.csv"]
+}

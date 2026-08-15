@@ -35,13 +35,13 @@ Copy or symlink `stan-jax-workflow/` into the agent's skills directory
 ## Tests
 
 ```bash
-python -m pytest evals/l0
-python evals/smoke/mini_normal.py
+python -m pytest
 ```
 
 `evals/l0` checks the diagnostic JSON contract on known-good and known-bad
-traces. `evals/smoke/mini_normal.py` runs live CmdStanPy NUTS when CmdStan is
-installed.
+traces. `evals/l2` grades sealed workflow fixtures (no live agent).
+`evals/smoke` runs live CmdStanPy and BlackJAX NUTS on the same mini-normal
+data.
 
 ## Layout
 

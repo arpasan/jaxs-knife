@@ -14,6 +14,9 @@ ArviZ `InferenceData` is the shared posterior object.
 - Public Python functions: full type hints; optional injected `logger`;
   no prints in library code.
 - Do not put eval prompts or gold answers in `SKILL.md`.
+- L2 gold, `rubric.json`, and pack `meta.json` stay under `evals/`. Never
+  copy them into an agent cwd. Do not write `eval_metadata.json` beside
+  agent outputs.
 - Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
 - Do not transpile Stan to XLA.
 

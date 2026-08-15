@@ -1,0 +1,9 @@
+{
+  "convergence": {
+    "all_ok": true,
+    "rhat": {"ok": true, "max": 1.002, "problematic_params": []},
+    "ess_bulk": {"ok": true, "problematic_params": []},
+    "ess_tail": {"ok": true, "problematic_params": []},
+    "divergences": {"count": 0, "pct": 0.0, "ok": true}
+  }
+}

@@ -1,9 +1,12 @@
 # L2 — sealed workflow grades
 
-This script **is** the test. Pytest checks the grader. Live skill-on vs
-skill-off runs use the same script to prepare folders and to score them.
-Solvers are separate blank-memory agents. After a batch, a small JSON
-summary is copied to `results/` (committed). Agent folders are wiped.
+Live design (n = 3, pass^1 / pass^3, models, hygiene) is in
+[PROTOCOL.md](PROTOCOL.md). This page is the commands.
+
+Pytest checks the grader. Live skill-on vs skill-off runs use the same
+script to prepare folders and to score them. Solvers are separate
+blank-memory agents. After a batch, a small JSON summary is copied to
+`results/` (committed). Agent folders are wiped.
 
 ```bash
 python -m pytest evals/l2

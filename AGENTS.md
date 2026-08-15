@@ -17,6 +17,11 @@ ArviZ `InferenceData` is the shared posterior object.
 - L2 gold, `rubric.json`, and pack `meta.json` stay under `evals/`. Never
   copy them into an agent cwd. Do not write `eval_metadata.json` beside
   agent outputs.
+- Live L2: same model, skill on vs off, n = 3, report pass^1 and pass^3.
+  Primary solver is Cursor Grok 4.6; an optional second stack is Opus 4.7
+  or Fable (paired on/off, not vs Grok). See `evals/l2/PROTOCOL.md`.
+- After a live batch, commit only `evals/l2/results/*.json`. Wipe
+  `local_runs/`. Do not leave extra Cursor projects.
 - Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
 - Do not transpile Stan to XLA.
 

@@ -62,3 +62,43 @@ def test_zero_divergences_in_prose_counts() -> None:
     report = evaluate_band_a(FIX / "pass_workflow")
     by_id = {p["id"]: p["ok"] for p in report["predicates"]}
     assert by_id["refuse_divergences"] is True
+
+
+def test_copied_skill_does_not_grade_itself() -> None:
+    """On-skill folders copy SKILL.md; those files must not satisfy Band A."""
+    import shutil
+
+    from workspace import prepare_workspace
+
+    dest = Path(__file__).resolve().parent / "local_runs" / "_pytest" / "contam"
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    junk = "# Report\n\n50% HDI and 94% HDI.\n\nR-hat 1.01.\nZero divergences.\nLimitations: toy data.\n"
+    try:
+        prepare_workspace("S5", dest, condition="with")
+        for path in list(dest.iterdir()):
+            if path.name == ".cursor":
+                continue
+            if path.is_file():
+                path.unlink()
+            else:
+                shutil.rmtree(path)
+        (dest / "report.md").write_text(junk, encoding="utf-8")
+        on = evaluate_band_a(dest)
+        off_dir = dest.parent / "contam-off"
+        if off_dir.exists():
+            shutil.rmtree(off_dir)
+        off_dir.mkdir()
+        (off_dir / "report.md").write_text(junk, encoding="utf-8")
+        off = evaluate_band_a(off_dir)
+        leaked = ("prior_predictive", "gq_or_vmap", "constraint_ok", "draws_saved")
+        on_ids = {p["id"]: p["ok"] for p in on["predicates"]}
+        off_ids = {p["id"]: p["ok"] for p in off["predicates"]}
+        for pid in leaked:
+            assert on_ids[pid] is False, pid
+            assert off_ids[pid] is False, pid
+        assert on["n_pass"] == off["n_pass"]
+    finally:
+        shutil.rmtree(dest, ignore_errors=True)
+        shutil.rmtree(dest.parent / "contam-off", ignore_errors=True)

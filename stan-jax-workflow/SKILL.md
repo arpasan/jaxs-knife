@@ -106,13 +106,15 @@ from jax.scipy.stats import norm
 def constrain(z: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
     mu, z_sigma = z[0], z[1]
     sigma = jnp.exp(z_sigma)
-    log_abs_det = z_sigma  # d/dz log sigma
+    log_abs_det = z_sigma  # d(log sigma) / d z_sigma
     return jnp.array([mu, sigma]), log_abs_det
 
 def logdensity_fn(z: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
     theta, log_abs_det = constrain(z)
     mu, sigma = theta[0], theta[1]
-    logp = norm.logpdf(mu, 0.0, 2.5) + norm.logpdf(jnp.log(sigma), 0.0, 1.0)
+    # Priors on constrained values (same families as the Stan template).
+    # Do not put a density on log(sigma) *and* add J — that double-counts.
+    logp = norm.logpdf(mu, 0.0, 2.5) + (-sigma)  # exponential(1) on sigma
     logp = logp + jnp.sum(norm.logpdf(y, mu, sigma))
     return logp + log_abs_det
 ```

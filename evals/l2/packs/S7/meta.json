@@ -1,0 +1,10 @@
+{
+  "id": "S7",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "mu1": -1.1,
+    "mu2": 1.4,
+    "weight": 0.4
+  }
+}

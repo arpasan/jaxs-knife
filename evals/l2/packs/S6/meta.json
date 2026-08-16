@@ -1,0 +1,9 @@
+{
+  "id": "S6",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "beta": 1.5,
+    "ld50": 0.26666666666666666
+  }
+}

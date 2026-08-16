@@ -37,12 +37,35 @@ _PATHFINDER = re.compile(r"pathfinder", re.I)
 _APPROX = re.compile(r"(approximation|warm[- ]?start|init(?:ialization)?)", re.I)
 
 
+def _under_skill_tree(path: Path, root: Path) -> bool:
+    """True when ``path`` is inside a copied skill (must not be graded)."""
+    try:
+        rel = path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    if ".cursor" in rel.parts:
+        return True
+    for parent in (path, *path.parents):
+        try:
+            parent.resolve().relative_to(root.resolve())
+        except ValueError:
+            break
+        if parent == root:
+            break
+        if (parent / "SKILL.md").is_file():
+            return True
+    return False
+
+
 def _iter_text_files(root: Path) -> Iterable[Tuple[Path, str]]:
     skip = {".nc", ".png", ".npy", ".pdf", ".so", ".o"}
+    root = root.resolve()
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() in skip:
             continue
         if path.name.lower() in _SKIP_NAMES:
+            continue
+        if _under_skill_tree(path, root):
             continue
         if path.stat().st_size > 2_000_000:
             continue
@@ -58,10 +81,11 @@ def _corpus(root: Path) -> str:
 
 
 def _report_corpus(root: Path) -> str:
+    root = root.resolve()
     return "\n".join(
         path.read_text(encoding="utf-8")
         for path in root.rglob("report.md")
-        if path.is_file()
+        if path.is_file() and not _under_skill_tree(path, root)
     )
 
 
@@ -160,10 +184,12 @@ def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
         add("refuse_divergences", bool(_REFUSE.search(corpus)), f"divergences={n_div}")
     else:
         add("refuse_divergences", True, "diagnostics report 0 divergences")
+    nc_on_disk = bool(list(root.rglob("*.nc")))
+    draws_ok = bool(_NETCDF.search(corpus)) or nc_on_disk
     add(
         "draws_saved",
-        bool(_NETCDF.search(corpus)) or bool(list(root.rglob("*.nc"))),
-        "netcdf present" if list(root.rglob("*.nc")) else "save not evidenced",
+        draws_ok,
+        "netcdf present" if draws_ok else "save not evidenced",
     )
     numpy_rewrite = bool(_NUMPY_LIK.search(corpus)) and not bool(_GQ.search(corpus))
     add("gq_or_vmap", bool(_GQ.search(corpus)) and not numpy_rewrite, "GQ/vmap" if _GQ.search(corpus) else "no GQ/vmap")

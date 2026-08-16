@@ -26,4 +26,4 @@ def test_pack_prompts_do_not_name_the_skill() -> None:
 
 def test_expected_packs_exist() -> None:
     ids = {p.name for p in PACKS.iterdir() if p.is_dir()}
-    assert {"S1", "S2", "S3", "S4", "S5", "S8"} <= ids
+    assert {"S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"} <= ids

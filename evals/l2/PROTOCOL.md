@@ -29,12 +29,11 @@ Scores: `results/S3_without_grok46.json`.
 Scores: `results/S3_with_grok46.json`.
 
 **S4 off (Grok 4.6):** pass^1 = 0/3, pass^3 = 0. Band A passed twice;
-Band B missed intercept α = 0.1 on all three (94% HDI started near 0.13).
-Scores: `results/S4_without_grok46.json`.
-
-**S4 on (Grok 4.6):** combined pass^1 = 0/3 (same intercept miss as off).
-Band A pass^1 = 3/3 vs 2/3 off (delta +1/3).
-Scores: `results/S4_with_grok46.json`.
+Band B missed intercept α = 0.1 on all three. **Post-critique:** the
+CSV's OLS intercept was 0.216 ± 0.041 — the fixture was unrecoverable,
+not a coverage floor. CSV regenerated (`generate_pack_data.py`). Old
+S4 scores are void. Re-run S4 off+on.
+Scores: `results/S4_without_grok46.json` (void).
 
 **S5 off (Grok 4.6):** pass^1 = 0/3. All three used a constrained `sigma`
 and prior predictive; all three missed a limitations section and the
@@ -45,26 +44,25 @@ Scores: `results/S5_without_grok46.json`.
 Scores: `results/S5_with_grok46.json`.
 
 **S8 off (Grok 4.6):** combined pass^1 = 0/3. Band A 0/3 (all missed
-prior predictive; two missed R-hat 1.01). Band B 1/3: μ = 0.15 sat in
-one 94% HDI and just outside the other two (upper edge ≈ 0.14).
-Scores: `results/S8_without_grok46.json`.
+prior predictive; two missed R-hat 1.01). Band B 1/3. **Post-critique:**
+sample mean was 0.005 ± 0.072 vs truth μ = 0.15 — fixture unrecoverable.
+CSV regenerated. Old S8 scores are void. Re-run S8 off+on.
+Scores: `results/S8_without_grok46.json` (void).
 
-**S8 on (Grok 4.6):** combined pass^1 = 0/3 (μ = 0.15 outside all three
-94% HDIs; upper edge ≈ 0.14). Band A pass^1 = 3/3 vs 0/3 off (delta +1).
-Scores: `results/S8_with_grok46.json`.
-
-**Grok 4.6 batch complete (36 cells).** Mean combined pass^1: 2/18 off
-vs 12/18 on (delta +10/18). Mean Band A pass^1: 4/18 off vs 18/18 on
-(delta +14/18). S4 and S8 combined stay at 0 from a coverage floor, not
-from the skill. Aggregate: `results/grok46_batch.json`. Agent trees
-under `~/Downloads/standoff-l2-runs/` wiped. Opus 4.7 / Fable still
-deferred.
+**Grok 4.6 first batch (36 cells) is in.** Do not publish raw Band A
+18/18: the grader read the copied skill tree (fixed in `band_a.py`).
+Publish the report.md-only subset: 5/18 off vs 18/18 on. S1/S2/S3/S5
+scores stay. S4/S8 scores are void (bad CSVs, now regenerated). JAX
+template in `SKILL.md` no longer double-counts the Jacobian. Next live
+cells: S4 and S8 (off+on) plus S6 (bioassay) and S7 (mixture), n = 3
+each — 24 jobs, not a second full 36. Aggregate of the first batch:
+`results/grok46_batch.json`. Fable live pass still deferred.
 
 ## Design
 
 | Item | Choice |
 |---|---|
-| Homeworks | S1, S2, S3, S4, S5, S8 |
+| Homeworks | S1–S8 (S6 bioassay, S7 mixture added after the first batch) |
 | Conditions | skill off, then skill on |
 | Tries per cell | **n = 3** (independent, blank-memory agents) |
 | Primary model | Cursor Grok 4.6 |

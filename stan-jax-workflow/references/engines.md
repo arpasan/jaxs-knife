@@ -24,7 +24,9 @@ GPU density, SVI, a density Stan cannot express, or a new sampler (BlackJAX). Wr
 
 1. Unconstrained parameters in, `constrain` out.
 2. Add `log|det J|` of the constraint.
-3. Prior + likelihood on constrained values.
+3. Prior + likelihood on **constrained** values (same families as the Stan model).
+   A prior already written on the unconstrained coordinate must **not** also
+   add `J` — that double-counts the transform.
 4. `vmap` the observation model for GQ / PPC.
 
 BlackJAX is a sampler library, not a PPL. You owe it a `logdensity_fn`.

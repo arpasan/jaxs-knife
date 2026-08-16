@@ -8,7 +8,13 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 _PVALUE = re.compile(
-    r"\b(p\s*[<>=]\s*0\.\d+|p-value|p value|statistically significant|significant effect|reject the null)\b",
+    r"\b(p\s*[<>=]\s*0\.\d+|statistically significant|significant effect|reject the null)\b",
+    re.I,
+)
+_PVALUE_USED = re.compile(r"(?<!no )(?<!without )(?<!not )\bp[\-\s]?values?\b", re.I)
+_SKIP_NAMES = frozenset({"prompt.md", "data.csv"})
+_ZERO_DIV = re.compile(
+    r"(zero divergenc|no divergenc|0 divergenc|divergent transitions\s*[|:]\s*0|divergences\s*[:=]\s*0)",
     re.I,
 )
 _PRIOR_PRED = re.compile(r"prior\s+predictive", re.I)
@@ -36,6 +42,8 @@ def _iter_text_files(root: Path) -> Iterable[Tuple[Path, str]]:
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() in skip:
             continue
+        if path.name.lower() in _SKIP_NAMES:
+            continue
         if path.stat().st_size > 2_000_000:
             continue
         try:
@@ -47,6 +55,14 @@ def _iter_text_files(root: Path) -> Iterable[Tuple[Path, str]]:
 
 def _corpus(root: Path) -> str:
     return "\n".join(text for _, text in _iter_text_files(root))
+
+
+def _report_corpus(root: Path) -> str:
+    return "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in root.rglob("report.md")
+        if path.is_file()
+    )
 
 
 def _code_order_prior_before_sample(root: Path) -> bool:
@@ -62,18 +78,29 @@ def _code_order_prior_before_sample(root: Path) -> bool:
     return False
 
 
+def _div_from_obj(obj: Any) -> int | None:
+    if isinstance(obj, dict):
+        raw = obj.get("divergences")
+        if isinstance(raw, int):
+            return raw
+        if isinstance(raw, dict) and "count" in raw:
+            return int(raw["count"])
+        for value in obj.values():
+            found = _div_from_obj(value)
+            if found is not None:
+                return found
+    return None
+
+
 def _divergences_count(root: Path) -> int | None:
     for path in root.rglob("*.json"):
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
-        conv = payload.get("convergence") if isinstance(payload, dict) else None
-        if not isinstance(conv, dict):
-            continue
-        div = conv.get("divergences")
-        if isinstance(div, dict) and "count" in div:
-            return int(div["count"])
+        found = _div_from_obj(payload)
+        if found is not None:
+            return found
     return None
 
 
@@ -92,6 +119,7 @@ def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
     """
     root = trial_dir.resolve()
     corpus = _corpus(root)
+    report_text = _report_corpus(root)
     reports = list(root.rglob("report.md"))
     n_div = _divergences_count(root)
 
@@ -101,16 +129,17 @@ def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
         predicates.append({"id": pid, "ok": bool(ok), "evidence": evidence})
 
     add("report_exists", bool(reports), reports[0].name if reports else "missing report.md")
-    add("limitations", bool(_LIMIT.search(corpus)), "limitations/threats heading" if _LIMIT.search(corpus) else "absent")
+    add("limitations", bool(_LIMIT.search(report_text or corpus)), "limitations/threats heading" if _LIMIT.search(report_text or corpus) else "absent")
+    p_hit = _PVALUE.search(report_text) or _PVALUE_USED.search(report_text)
     add(
         "probability_language",
-        _PVALUE.search(corpus) is None,
-        "clean" if _PVALUE.search(corpus) is None else _PVALUE.search(corpus).group(0),
+        p_hit is None,
+        "clean" if p_hit is None else p_hit.group(0),
     )
     add(
         "intervals_50_94",
-        bool(_50.search(corpus) and _94.search(corpus) and _HDI.search(corpus)),
-        "50% and 94% HDI" if (_50.search(corpus) and _94.search(corpus)) else "missing 50/94 HDI",
+        bool(_50.search(report_text) and _94.search(report_text) and _HDI.search(report_text)),
+        "50% and 94% HDI" if (_50.search(report_text) and _94.search(report_text)) else "missing 50/94 HDI",
     )
     add(
         "prior_predictive",
@@ -119,12 +148,13 @@ def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
         if _code_order_prior_before_sample(root)
         else "prior predictive missing or after sampling",
     )
-    add("rhat_1_01", bool(_RHAT.search(corpus)), "1.01" if _RHAT.search(corpus) else "R-hat 1.01 not stated")
+    add("rhat_1_01", bool(_RHAT.search(report_text or corpus)), "1.01" if _RHAT.search(report_text or corpus) else "R-hat 1.01 not stated")
     if n_div is None:
+        said_zero = bool(_ZERO_DIV.search(report_text or corpus))
         add(
             "refuse_divergences",
-            bool(_DIVERGE.search(corpus) and _REFUSE.search(corpus)) or bool(re.search(r"\b0 diverg", corpus, re.I)),
-            "divergence policy stated" if _DIVERGE.search(corpus) else "divergences not discussed",
+            said_zero or bool(_DIVERGE.search(report_text or corpus) and _REFUSE.search(report_text or corpus)),
+            "divergence policy stated" if (_DIVERGE.search(report_text or corpus) or said_zero) else "divergences not discussed",
         )
     elif n_div > 0:
         add("refuse_divergences", bool(_REFUSE.search(corpus)), f"divergences={n_div}")

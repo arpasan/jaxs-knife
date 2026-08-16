@@ -9,9 +9,11 @@ grade. This is the live batch. Pytest on fixtures is only the grader check.
 until Usage events after Grok look fine. Fable is not the default second
 model (cost).
 
-**Running:** S1 skill-off, n = 3, Grok 4.6. Folders are outside the repo
-(`~/Downloads/standoff-l2-runs/…`) so the project skill cannot attach.
-Wipe that tree after scores are copied to `results/`.
+**S1 off (Grok 4.6):** pass^1 = 1/3, pass^3 = 0. Band B recovered
+α, β, σ on all three tries. Band A failed on two tries that never stated
+the R-hat 1.01 threshold. Scores: `results/S1_without_grok46.json`.
+
+**Running:** S1 skill-on, n = 3, Grok 4.6. Same outside-repo folders.
 
 ## Design
 

@@ -28,3 +28,37 @@ def test_fail_fixture_is_caught() -> None:
     assert by_id["rhat_1_01"] is False
     assert by_id["draws_saved"] is False
     assert by_id["constraint_ok"] is False
+
+
+def test_prompt_file_is_not_scored(tmp_path: Path) -> None:
+    trial = tmp_path / "trial"
+    trial.mkdir()
+    (trial / "prompt.md").write_text(
+        "Use no p-values. Diagnose divergences.\n",
+        encoding="utf-8",
+    )
+    (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8")
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    report = evaluate_band_a(trial)
+    assert report["passed"] is True, [p for p in report["predicates"] if not p["ok"]]
+
+
+def test_zero_divergences_in_prose_counts() -> None:
+    report = evaluate_band_a(FIX / "pass_workflow")
+    by_id = {p["id"]: p["ok"] for p in report["predicates"]}
+    assert by_id["refuse_divergences"] is True

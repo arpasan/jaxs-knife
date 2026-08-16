@@ -1,0 +1,50 @@
+{
+  "pack": "S2",
+  "condition": "without",
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "git": "8e1c433",
+  "n": 3,
+  "successes": [
+    false,
+    false,
+    false
+  ],
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "band_b": "not scored (no synthetic truth)",
+  "trials": [
+    {
+      "rep": 0,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive",
+        "rhat_1_01",
+        "gq_or_vmap"
+      ],
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 1,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive",
+        "rhat_1_01",
+        "gq_or_vmap"
+      ],
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 2,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive",
+        "rhat_1_01",
+        "gq_or_vmap"
+      ],
+      "passed": false,
+      "contam": []
+    }
+  ]
+}

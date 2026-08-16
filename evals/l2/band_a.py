@@ -26,7 +26,7 @@ _94 = re.compile(r"\b94\s*%", re.I)
 _RHAT = re.compile(r"1\.01")
 _DIVERGE = re.compile(r"divergenc", re.I)
 _REFUSE = re.compile(
-    r"(do not interpret|must not be interpreted|refuse to interpret|not interpret the posterior)",
+    r"(do not interpret|must not be interpreted|refuse to interpret|not interpret(?:ed|ing)?(?: the posterior)?)",
     re.I,
 )
 _NETCDF = re.compile(r"(inference_data\.nc|to_netcdf|write_netcdf)", re.I)

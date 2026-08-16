@@ -21,7 +21,11 @@ Scores: `results/S2_without_grok46.json`.
 **S2 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
 Scores: `results/S2_with_grok46.json`.
 
-**Running:** S3 skill-off, n = 3, Grok 4.6.
+**S3 off (Grok 4.6):** pass^1 = 1/3, pass^3 = 0. One try missed the
+R-hat 1.01 threshold; one missed 50%/94% HDI wording.
+Scores: `results/S3_without_grok46.json`.
+
+**Running:** S3 skill-on, n = 3, Grok 4.6.
 
 ## Design
 

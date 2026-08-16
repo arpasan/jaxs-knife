@@ -28,7 +28,11 @@ Scores: `results/S3_without_grok46.json`.
 **S3 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +2/3.
 Scores: `results/S3_with_grok46.json`.
 
-**Running:** S4 skill-off, n = 3, Grok 4.6.
+**S4 off (Grok 4.6):** pass^1 = 0/3, pass^3 = 0. Band A passed twice;
+Band B missed intercept α = 0.1 on all three (94% HDI started near 0.13).
+Scores: `results/S4_without_grok46.json`.
+
+**Running:** S4 skill-on, n = 3, Grok 4.6.
 
 ## Design
 

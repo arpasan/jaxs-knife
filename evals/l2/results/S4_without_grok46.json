@@ -1,0 +1,42 @@
+{
+  "pack": "S4",
+  "condition": "without",
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "git": "02893e7",
+  "n": 3,
+  "successes": [
+    false,
+    false,
+    false
+  ],
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "trials": [
+    {
+      "rep": 0,
+      "band_a": true,
+      "band_a_failed": [],
+      "band_b": false,
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 1,
+      "band_a": false,
+      "band_a_failed": [
+        "rhat_1_01"
+      ],
+      "band_b": false,
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 2,
+      "band_a": true,
+      "band_a_failed": [],
+      "band_b": false,
+      "passed": false,
+      "contam": []
+    }
+  ]
+}

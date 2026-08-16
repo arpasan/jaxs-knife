@@ -18,7 +18,10 @@ non-centered after divergences; all three missed prior predictive, the
 R-hat 1.01 threshold, and generated quantities.
 Scores: `results/S2_without_grok46.json`.
 
-**Running:** S2 skill-on, n = 3, Grok 4.6.
+**S2 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
+Scores: `results/S2_with_grok46.json`.
+
+**Running:** S3 skill-off, n = 3, Grok 4.6.
 
 ## Design
 

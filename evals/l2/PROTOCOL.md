@@ -36,7 +36,12 @@ Scores: `results/S4_without_grok46.json`.
 Band A pass^1 = 3/3 vs 2/3 off (delta +1/3).
 Scores: `results/S4_with_grok46.json`.
 
-**Running:** S5 skill-off, n = 3, Grok 4.6.
+**S5 off (Grok 4.6):** pass^1 = 0/3. All three used a constrained `sigma`
+and prior predictive; all three missed a limitations section and the
+R-hat 1.01 threshold.
+Scores: `results/S5_without_grok46.json`.
+
+**Running:** S5 skill-on, n = 3, Grok 4.6.
 
 ## Design
 

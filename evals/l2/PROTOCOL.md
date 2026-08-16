@@ -44,7 +44,12 @@ Scores: `results/S5_without_grok46.json`.
 **S5 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
 Scores: `results/S5_with_grok46.json`.
 
-**Running:** S8 skill-off, n = 3, Grok 4.6.
+**S8 off (Grok 4.6):** combined pass^1 = 0/3. Band A 0/3 (all missed
+prior predictive; two missed R-hat 1.01). Band B 1/3: μ = 0.15 sat in
+one 94% HDI and just outside the other two (upper edge ≈ 0.14).
+Scores: `results/S8_without_grok46.json`.
+
+**Running:** S8 skill-on, n = 3, Grok 4.6.
 
 ## Design
 

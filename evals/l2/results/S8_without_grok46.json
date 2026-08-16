@@ -1,0 +1,150 @@
+{
+  "pack": "S8",
+  "condition": "without",
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "git": "e3e7d22",
+  "n": 3,
+  "successes": [
+    false,
+    false,
+    false
+  ],
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "band_a_successes": [
+    false,
+    false,
+    false
+  ],
+  "band_a_pass_at_1": 0.0,
+  "band_b_successes": [
+    true,
+    false,
+    false
+  ],
+  "band_b_pass_at_1": 0.3333333333333333,
+  "trials": [
+    {
+      "rep": 0,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive",
+        "rhat_1_01"
+      ],
+      "band_b": true,
+      "band_b_detail": {
+        "nc": "inference_data.nc",
+        "vars": [
+          "mu",
+          "sigma",
+          "log_sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.1343068039581049,
+              0.15684161096561167
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.3093354859556083,
+              0.5134079320580976
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": true,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 1,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive"
+      ],
+      "band_b": false,
+      "band_b_detail": {
+        "nc": "idata.nc",
+        "vars": [
+          "mu",
+          "sigma",
+          "log_sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.1437919836429953,
+              0.14674733268031104
+            ],
+            "nominal": 0.94,
+            "ok": false
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.30870487455961954,
+              0.5236237794928723
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": false,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 2,
+      "band_a": false,
+      "band_a_failed": [
+        "prior_predictive",
+        "rhat_1_01"
+      ],
+      "band_b": false,
+      "band_b_detail": {
+        "nc": "draws.nc",
+        "vars": [
+          "mu",
+          "sigma",
+          "log_sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.1437930464744568,
+              0.14333632588386536
+            ],
+            "nominal": 0.94,
+            "ok": false
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.31233394145965576,
+              0.5179752707481384
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": false,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    }
+  ]
+}

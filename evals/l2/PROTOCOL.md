@@ -32,7 +32,11 @@ Scores: `results/S3_with_grok46.json`.
 Band B missed intercept α = 0.1 on all three (94% HDI started near 0.13).
 Scores: `results/S4_without_grok46.json`.
 
-**Running:** S4 skill-on, n = 3, Grok 4.6.
+**S4 on (Grok 4.6):** combined pass^1 = 0/3 (same intercept miss as off).
+Band A pass^1 = 3/3 vs 2/3 off (delta +1/3).
+Scores: `results/S4_with_grok46.json`.
+
+**Running:** S5 skill-off, n = 3, Grok 4.6.
 
 ## Design
 

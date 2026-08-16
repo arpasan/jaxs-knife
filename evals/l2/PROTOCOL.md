@@ -49,7 +49,16 @@ prior predictive; two missed R-hat 1.01). Band B 1/3: μ = 0.15 sat in
 one 94% HDI and just outside the other two (upper edge ≈ 0.14).
 Scores: `results/S8_without_grok46.json`.
 
-**Running:** S8 skill-on, n = 3, Grok 4.6.
+**S8 on (Grok 4.6):** combined pass^1 = 0/3 (μ = 0.15 outside all three
+94% HDIs; upper edge ≈ 0.14). Band A pass^1 = 3/3 vs 0/3 off (delta +1).
+Scores: `results/S8_with_grok46.json`.
+
+**Grok 4.6 batch complete (36 cells).** Mean combined pass^1: 2/18 off
+vs 12/18 on (delta +10/18). Mean Band A pass^1: 4/18 off vs 18/18 on
+(delta +14/18). S4 and S8 combined stay at 0 from a coverage floor, not
+from the skill. Aggregate: `results/grok46_batch.json`. Agent trees
+under `~/Downloads/standoff-l2-runs/` wiped. Opus 4.7 / Fable still
+deferred.
 
 ## Design
 

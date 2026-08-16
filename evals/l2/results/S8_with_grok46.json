@@ -1,0 +1,143 @@
+{
+  "pack": "S8",
+  "condition": "with",
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "git": "b33453b",
+  "n": 3,
+  "successes": [
+    false,
+    false,
+    false
+  ],
+  "pass_at_1": 0.0,
+  "pass_at_3": 0.0,
+  "delta_vs_without_pass1": 0.0,
+  "delta_vs_without_pass3": 0.0,
+  "band_a_successes": [
+    true,
+    true,
+    true
+  ],
+  "band_a_pass_at_1": 1.0,
+  "delta_band_a_pass1": 1.0,
+  "band_b_successes": [
+    false,
+    false,
+    false
+  ],
+  "band_b_pass_at_1": 0.0,
+  "delta_band_b_pass1": -0.3333333333333333,
+  "trials": [
+    {
+      "rep": 0,
+      "band_a": true,
+      "band_a_failed": [],
+      "band_b": false,
+      "band_b_detail": {
+        "nc": "inference_data.nc",
+        "vars": [
+          "mu",
+          "sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.14778977632522583,
+              0.13535794615745544
+            ],
+            "nominal": 0.94,
+            "ok": false
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.3123438358306885,
+              0.516392171382904
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": false,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 1,
+      "band_a": true,
+      "band_a_failed": [],
+      "band_b": false,
+      "band_b_detail": {
+        "nc": "inference_data.nc",
+        "vars": [
+          "mu",
+          "sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.14679692685604095,
+              0.1433688998222351
+            ],
+            "nominal": 0.94,
+            "ok": false
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.3094727396965027,
+              0.5170780420303345
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": false,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    },
+    {
+      "rep": 2,
+      "band_a": true,
+      "band_a_failed": [],
+      "band_b": false,
+      "band_b_detail": {
+        "nc": "inference_data.nc",
+        "vars": [
+          "mu",
+          "sigma"
+        ],
+        "parameters": {
+          "mu": {
+            "truth": 0.15,
+            "hdi": [
+              -0.1377878338098526,
+              0.14004302024841309
+            ],
+            "nominal": 0.94,
+            "ok": false
+          },
+          "sigma": {
+            "truth": 0.45,
+            "hdi": [
+              0.3134402632713318,
+              0.5265449285507202
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": false,
+        "error": null
+      },
+      "passed": false,
+      "contam": []
+    }
+  ]
+}

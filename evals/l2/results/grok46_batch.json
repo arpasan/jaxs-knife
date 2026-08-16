@@ -1,0 +1,224 @@
+{
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "date": "2026-08-16",
+  "n_per_cell": 3,
+  "n_cells": 36,
+  "packs": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S8"
+  ],
+  "headline": {
+    "mean_combined_pass1_off": 0.1111111111111111,
+    "mean_combined_pass1_on": 0.6666666666666666,
+    "mean_combined_delta_pass1": 0.5555555555555556,
+    "mean_band_a_pass1_off": 0.2222222222222222,
+    "mean_band_a_pass1_on": 1.0,
+    "mean_band_a_delta_pass1": 0.7777777777777778,
+    "workflow_only_mean_pass1_off": 0.16666666666666666,
+    "workflow_only_mean_pass1_on": 1.0,
+    "workflow_only_mean_delta_pass1": 0.8333333333333334,
+    "coverage_floor_packs": [
+      "S4",
+      "S8"
+    ],
+    "note": "S4/S8 combined stay at 0 because 94% HDIs miss hidden intercept/mean. Band A still lifts. Report both."
+  },
+  "by_pack": [
+    {
+      "pack": "S1",
+      "coverage_scored": true,
+      "off_pass1": 0.3333333333333333,
+      "on_pass1": 1.0,
+      "delta_pass1": 0.6666666666666667,
+      "off_pass3": 0.0,
+      "on_pass3": 1.0,
+      "off_band_a_pass1": 0.3333333333333333,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 0.6666666666666667,
+      "off_successes": [
+        true,
+        false,
+        false
+      ],
+      "on_successes": [
+        true,
+        true,
+        true
+      ],
+      "off_band_a": [
+        true,
+        false,
+        false
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pack": "S2",
+      "coverage_scored": false,
+      "off_pass1": 0.0,
+      "on_pass1": 1.0,
+      "delta_pass1": 1.0,
+      "off_pass3": 0.0,
+      "on_pass3": 1.0,
+      "off_band_a_pass1": 0.0,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 1.0,
+      "off_successes": [
+        false,
+        false,
+        false
+      ],
+      "on_successes": [
+        true,
+        true,
+        true
+      ],
+      "off_band_a": [
+        false,
+        false,
+        false
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pack": "S3",
+      "coverage_scored": false,
+      "off_pass1": 0.3333333333333333,
+      "on_pass1": 1.0,
+      "delta_pass1": 0.6666666666666667,
+      "off_pass3": 0.0,
+      "on_pass3": 1.0,
+      "off_band_a_pass1": 0.3333333333333333,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 0.6666666666666667,
+      "off_successes": [
+        false,
+        true,
+        false
+      ],
+      "on_successes": [
+        true,
+        true,
+        true
+      ],
+      "off_band_a": [
+        false,
+        true,
+        false
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pack": "S4",
+      "coverage_scored": true,
+      "off_pass1": 0.0,
+      "on_pass1": 0.0,
+      "delta_pass1": 0.0,
+      "off_pass3": 0.0,
+      "on_pass3": 0.0,
+      "off_band_a_pass1": 0.6666666666666666,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 0.33333333333333337,
+      "off_successes": [
+        false,
+        false,
+        false
+      ],
+      "on_successes": [
+        false,
+        false,
+        false
+      ],
+      "off_band_a": [
+        true,
+        false,
+        true
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pack": "S5",
+      "coverage_scored": false,
+      "off_pass1": 0.0,
+      "on_pass1": 1.0,
+      "delta_pass1": 1.0,
+      "off_pass3": 0.0,
+      "on_pass3": 1.0,
+      "off_band_a_pass1": 0.0,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 1.0,
+      "off_successes": [
+        false,
+        false,
+        false
+      ],
+      "on_successes": [
+        true,
+        true,
+        true
+      ],
+      "off_band_a": [
+        false,
+        false,
+        false
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pack": "S8",
+      "coverage_scored": true,
+      "off_pass1": 0.0,
+      "on_pass1": 0.0,
+      "delta_pass1": 0.0,
+      "off_pass3": 0.0,
+      "on_pass3": 0.0,
+      "off_band_a_pass1": 0.0,
+      "on_band_a_pass1": 1.0,
+      "delta_band_a_pass1": 1.0,
+      "off_successes": [
+        false,
+        false,
+        false
+      ],
+      "on_successes": [
+        false,
+        false,
+        false
+      ],
+      "off_band_a": [
+        false,
+        false,
+        false
+      ],
+      "on_band_a": [
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}

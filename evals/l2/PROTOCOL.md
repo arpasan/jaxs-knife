@@ -3,10 +3,15 @@
 Skill-on vs skill-off, same model, three independent tries, deterministic
 grade. This is the live batch. Pytest on fixtures is only the grader check.
 
-## Status (2026-08-15)
+## Status (2026-08-16)
 
-Live batch **not started**. Next session: confirm the second model (or
-Cursor-only), prepare folders, run S1 without-skill on Grok 4.6 first.
+**This batch:** Cursor Grok 4.6 only (36 cells). Opus 4.7 / Fable deferred
+until Usage events after Grok look fine. Fable is not the default second
+model (cost).
+
+**Running:** S1 skill-off, n = 3, Grok 4.6. Folders are outside the repo
+(`~/Downloads/standoff-l2-runs/…`) so the project skill cannot attach.
+Wipe that tree after scores are copied to `results/`.
 
 ## Design
 

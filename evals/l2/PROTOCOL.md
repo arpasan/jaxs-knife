@@ -41,7 +41,10 @@ and prior predictive; all three missed a limitations section and the
 R-hat 1.01 threshold.
 Scores: `results/S5_without_grok46.json`.
 
-**Running:** S5 skill-on, n = 3, Grok 4.6.
+**S5 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
+Scores: `results/S5_with_grok46.json`.
+
+**Running:** S8 skill-off, n = 3, Grok 4.6.
 
 ## Design
 

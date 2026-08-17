@@ -139,7 +139,13 @@ def posterior_from_idata(
         Draw arrays for names that were found.
     """
     out: Dict[str, NDArray[np.floating]] = {}
-    post = idata.posterior
+    try:
+        post = idata.posterior
+    except AttributeError:
+        try:
+            post = idata["posterior"]
+        except Exception as exc:
+            raise AttributeError("no posterior group on InferenceData") from exc
     alias_map: Dict[str, tuple[str, ...]] = dict(DEFAULT_ALIASES)
     if aliases:
         for key, values in aliases.items():

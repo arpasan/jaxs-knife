@@ -56,6 +56,20 @@ class _Idata:
         self.posterior = _Post(vars)
 
 
+def test_posterior_from_idata_falls_back_to_getitem() -> None:
+    from band_b import posterior_from_idata
+
+    class _Tree:
+        def __getitem__(self, name: str) -> _Post:
+            if name != "posterior":
+                raise KeyError(name)
+            return _Post({"mu": np.ones((2, 8))})
+
+    out = posterior_from_idata(_Tree(), ("mu",))
+    assert "mu" in out
+    assert out["mu"].shape == (2, 8)
+
+
 def test_posterior_from_idata_omits_missing_names() -> None:
     from band_b import posterior_from_idata
 

@@ -13,6 +13,16 @@ from band_b import assess_recovery, posterior_from_idata
 from isolation import IsolationError, assert_sealed
 
 
+def find_inference_data(trial_dir: Path) -> Optional[Path]:
+    """Prefer ``inference_data.nc`` over prior-predictive or sensitivity files."""
+    root = trial_dir.resolve()
+    preferred = sorted(root.rglob("inference_data.nc"))
+    if preferred:
+        return preferred[0]
+    found = sorted(root.rglob("*.nc"))
+    return found[0] if found else None
+
+
 def grade_trial(
     trial_dir: Path,
     *,
@@ -46,10 +56,7 @@ def grade_trial(
 
     band_b: Dict[str, Any] | None = None
     if truth:
-        nc = idata_path
-        if nc is None:
-            found = list(root.rglob("*.nc"))
-            nc = found[0] if found else None
+        nc = idata_path if idata_path is not None else find_inference_data(root)
         if nc is None:
             band_b = {
                 "scored": False,

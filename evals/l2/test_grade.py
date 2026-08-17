@@ -16,6 +16,16 @@ def test_pass_fixture_grades_clean() -> None:
     assert report["passed"] is True
 
 
+def test_prefers_inference_data_nc(tmp_path: Path) -> None:
+    from grade import find_inference_data
+
+    (tmp_path / "prior_predictive.nc").write_bytes(b"prior")
+    (tmp_path / "inference_data_sensitivity.nc").write_bytes(b"sens")
+    dest = tmp_path / "inference_data.nc"
+    dest.write_bytes(b"real")
+    assert find_inference_data(tmp_path) == dest
+
+
 def test_fail_fixture_grades_false() -> None:
     report = grade_trial(FIX / "fail_workflow")
     assert report["passed"] is False

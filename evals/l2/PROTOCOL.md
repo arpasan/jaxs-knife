@@ -1,134 +1,122 @@
 # L2 live protocol
 
-Skill-on vs skill-off, same model, three independent tries, deterministic
-grade. This is the live batch. Pytest on fixtures is only the grader check.
-
-## Status (2026-08-17)
-
-**This batch:** Cursor Grok 4.6 only. The 18-job follow-up (S6, S7, S8 ×
-off/on × n=3) is in. Band B recovered hidden truth **9/9 off and 9/9 on**.
-Combined pass^1: S6 0/3→3/3, S7 2/3→3/3, S8 0/3→3/3. That lift is Band A.
-Do not claim better posteriors. S4 was re-run on the current CSV with a
-Band A `prior_sensitivity_refit` predicate: combined pass^1 **3/3 off and
-3/3 on**. Band B recovered α, β, σ on all six tries. Scores:
-`results/S{4,6,7,8}_{without,with}_grok46.json`,
-`results/grok46_followup.json`, `results/grok46_s4.json`.
-
-Opus 4.7 / Fable deferred until this Grok arm is clean.
-
-**First batch (keep):** S1, S2, S3, S5. Publish Band A with and without
-the literal `1.01` predicate. Do not publish raw Band A 18/18 (grader
-once read the copied skill tree; fixed). S4/S8 first-batch scores remain
-void.
-
-**S1 off (Grok 4.6):** pass^1 = 1/3, pass^3 = 0.
-**S1 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +2/3.
-Scores: `results/S1_without_grok46.json`, `results/S1_with_grok46.json`.
-
-**S2 off (Grok 4.6):** pass^1 = 0/3, pass^3 = 0. All three moved to
-non-centered after divergences; all three missed prior predictive, the
-R-hat 1.01 threshold, and generated quantities.
-Scores: `results/S2_without_grok46.json`.
-
-**S2 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
-Scores: `results/S2_with_grok46.json`.
-
-**S3 off (Grok 4.6):** pass^1 = 1/3, pass^3 = 0. One try missed the
-R-hat 1.01 threshold; one missed 50%/94% HDI wording.
-Scores: `results/S3_without_grok46.json`.
-
-**S3 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +2/3.
-Scores: `results/S3_with_grok46.json`.
-
-**S4 off (Grok 4.6, re-run):** combined pass^1 = 3/3, pass^3 = 1.
-Band A 3/3 including `prior_sensitivity_refit`. Band B recovered α, β, σ
-on all three. First-batch S4 scores (unrecoverable CSV) stay void and
-were overwritten by this cell.
-Scores: `results/S4_without_grok46.json`.
-
-**S4 on (Grok 4.6, re-run):** combined pass^1 = 3/3, pass^3 = 1.
-Band A 3/3 including the sensitivity refit. Band B 3/3. Combined delta
-vs this off arm is 0 after the `inference_data.nc` preference fix
-(first grade had off 2/3 from reading `prior_predictive.nc`).
-Scores: `results/S4_with_grok46.json`.
-
-**S5 off (Grok 4.6):** pass^1 = 0/3. All three used a constrained `sigma`
-and prior predictive; all three missed a limitations section and the
-R-hat 1.01 threshold.
-Scores: `results/S5_without_grok46.json`.
-
-**S5 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +1.
-Scores: `results/S5_with_grok46.json`.
-
-**S8 off (Grok 4.6):** combined pass^1 = 0/3. Band A 0/3 (all missed
-prior predictive; two missed R-hat 1.01). Band B 1/3. **Post-critique:**
-sample mean was 0.005 ± 0.072 vs truth μ = 0.15 — fixture unrecoverable.
-CSV regenerated. Old S8 scores are void. Re-run S8 off+on.
-Scores: `results/S8_without_grok46.json` (void).
-
-**Grok 4.6 first batch (36 cells) is in.** Do not publish raw Band A
-18/18: the grader read the copied skill tree (fixed in `band_a.py`).
-Publish the report.md-only subset: 5/18 off vs 18/18 on, and the same
-subset with `rhat_1_01` dropped (14/18 vs 18/18). S1/S2/S3/S5 scores
-stay. S4/S8 first-batch scores are void. Aggregate:
-`results/grok46_batch.json`. Fable live pass still deferred.
+Paired evaluation of the skill: same homework, same model, skill off then
+skill on, three independent attempts, deterministic grade. Fixture pytest
+checks the grader only.
 
 ## Design
 
 | Item | Choice |
 |---|---|
-| Homeworks | S1–S8 (S6 bioassay, S7 mixture added after the first batch) |
+| Homeworks | S1–S8 |
 | Conditions | skill off, then skill on |
-| Tries per cell | **n = 3** (independent, blank-memory agents) |
+| Attempts per cell | *n* = 3 (independent, blank-memory agents) |
 | Primary model | Cursor Grok 4.6 |
-| Second model (optional) | Opus 4.7 or Fable — **same** on/off protocol, not vs Grok |
+| Optional second model | Opus 4.7 or Fable, same on/off pairing, not vs. Grok |
 | Prompt | pack `prompt.md` verbatim; no coaching |
-| Agent folder | `prompt.md` + `data.csv` only; skill copy only when on |
-| Gold | `rubric.json` and pack `meta.json` stay in this repo, never in the folder |
-| Grade | Band A (workflow files) + Band B (94% HDI contains hidden truth) |
-| Headline numbers | **pass^1** and **pass^3** per model × condition, then the on−off delta |
-| Judge | no LLM string-judge; Band C (other model family, pairwise) is later |
+| Agent folder | `prompt.md` and `data.csv` only; skill copy only when on |
+| Gold | `rubric.json` and pack `meta.json` stay in this repo |
+| Grade | Band A (workflow files) and Band B (94% HDI contains hidden truth) |
+| Headline | pass^1 and pass^3 per model × condition, then the on−off delta |
+| Judge | no LLM string-judge |
 
-pass^k (τ-bench) is the chance that **all** k independent tries succeed,
-`C(c,k)/C(n,k)`. pass^1 is the ordinary pass rate. One lucky try is not
-enough. SkillsBench averages five tries; three is our floor.
+pass^*k* (τ-bench) is the probability that all *k* independent attempts
+succeed, *C*(*c*,*k*)/*C*(*n*,*k*). pass^1 is the ordinary pass rate.
+SkillsBench averages five attempts; three is the floor used here.
 
-Compare models only to themselves (Grok+skill vs Grok−skill). A weaker or
-stronger second model is a second paired delta, not a Grok-vs-Opus contest.
+Models are compared only to themselves (Grok with skill vs. Grok without).
+A second model family is a second paired delta.
 
-## How a cell is run
+S4 and S8 CSVs were generated so a reference 94% interval under the pack
+priors covers the hidden truth. Published scores use those files. S6 and
+S7 were added after S1–S5.
+
+## Grading
+
+Band A is scored on files the agent wrote. Copied skill trees and
+`SKILL.md` subtrees are excluded. S4 adds an optional
+`prior_sensitivity_refit` predicate from pack `meta.json`.
+
+Band B is scored when the pack records hidden truth. The grader reads
+`inference_data.nc` when several NetCDF files are present. Missing
+parameter names are recorded as failures.
+
+A cell is discarded if gold files appear in the agent folder.
+
+## Headline metrics
+
+The primary headline is **combined** pass (Band A, and Band B when that
+pack is scored). Band A and Band B are also reported separately. Band B
+measures whether hidden truth lies in the 94% HDI; it is not a claim that
+the skill produces a better posterior.
+
+A robustness cut reports Band A with and without the literal `1.01`
+R-hat predicate.
+
+## Grok 4.6 results
+
+Date 2026-08-17. Combined pass^1, *n* = 3.
+
+| Pack | Off | On | Δ |
+|---|---|---|---|
+| S1 | 1/3 | 3/3 | +2/3 |
+| S2 | 0/3 | 3/3 | +1 |
+| S3 | 1/3 | 3/3 | +2/3 |
+| S4 | 3/3 | 3/3 | 0 |
+| S5 | 0/3 | 3/3 | +1 |
+| S6 | 0/3 | 3/3 | +1 |
+| S7 | 2/3 | 3/3 | +1/3 |
+| S8 | 0/3 | 3/3 | +1 |
+
+S4, S6, S7, and S8 recovered hidden truth in every scored attempt (off and
+on). S1 recovered α, β, and σ in both conditions. S2, S3, and S5 have no
+Band B truth.
+
+On S1–S3 and S5, Band A on the `report.md` subset (excluding the copied
+skill tree) was 5/18 off vs. 18/18 on. The same subset without the `1.01`
+predicate was 14/18 vs. 18/18.
+
+JSON: `results/S{1–8}_{without,with}_grok46.json`,
+`results/grok46_batch.json`, `results/grok46_followup.json`,
+`results/grok46_s4.json`.
+
+A second-model arm has not been run.
+
+## Procedure
 
 1. `python evals/l2/run_trial.py --pack S1 --condition without --n 3`
-2. Keep the receipt (file list). Void the cell if gold files appear.
-3. Three **new** agents, blank memory, folder = that `rep-*` only, model fixed.
-4. `python evals/l2/run_trial.py --pack S1 --condition without --n 3 --grade` (or `grade.py` on each `rep-*`).
-5. Copy the small score JSON to `results/` and commit it.
-6. `python evals/l2/emit_results.py --pack S6 --condition without --batch <batch.json>`
-7. After review, `python evals/l2/run_trial.py --wipe --run-root <run-root>`
+2. Keep the receipt (visible file list).
+3. Three new agents, blank memory, working directory that `rep-*` only,
+   model fixed.
+4. `python evals/l2/run_trial.py --pack S1 --condition without --n 3 --grade`
+   (or `grade.py` on each `rep-*`).
+5. Write the score JSON with `evals/l2/emit_results.py` and commit
+   `results/*.json`.
+6. After review, `python evals/l2/run_trial.py --wipe --run-root <run-root>`
    (keeps `report.md` / `.py` / `.stan` / `.json`; drops `.nc`, images,
    binaries).
 
 Do not open extra Cursor projects. Do not write `eval_metadata.json`
-beside outputs. Do not run solvers in a chat that has seen this protocol.
-Do not dump library source (`NUTSInfo`, `az.summary` internals). Bound
-introspection; time out hung inspect commands.
+beside outputs. Do not run solvers in a chat that has seen this protocol
+or the gold. Do not dump library source (`NUTSInfo`, `az.summary`
+internals). Bound introspection; time out hung inspect commands.
 
 ## Reproducibility
 
-**Fixed (re-runable):** pack CSVs, prompts, grader, rubric, git commit of
-this repo. Results JSON records model id, condition, pack, commit SHA, date,
-success vector, pass^1, pass^3.
+**Fixed:** pack CSVs, prompts, grader, rubric, git commit of this repo.
+Results JSON records model id, condition, pack, commit SHA, date, success
+vector, pass^1, and pass^3.
 
-**Not bit-identical:** agent transcripts and MCMC draws. That is why n = 3
-and why Band B is “truth inside the HDI,” not “same posterior as the oracle.”
+**Not bit-identical:** agent transcripts and MCMC draws. That is why
+*n* = 3 and why Band B is “truth inside the HDI,” not “same posterior as
+an oracle.”
 
-Usage: after the first few cells, check **Usage events** (the per-request
-list). The Spending % bar can lag. Cursor-model cells hit the Cursor pool;
-Opus/Fable cells hit Other Models.
+Cursor-model cells use the Cursor usage pool. Other-model cells use
+Other Models. The per-request Usage events list is the reliable meter.
 
 ## Hygiene
 
 - Agent trees only under `~/Downloads/jaxs-knife-l2-runs/` (outside the repo).
-- After scoring and a learning review, wipe heavy artifacts. GitHub keeps
-  `results/*.json` only. Small text may stay in the run tree until wipe.
+- GitHub keeps `results/*.json` only. Local `report.md` and other small
+  text may remain until wipe.
 - No leftover skill copies, Stan binaries, or extra `.cursor` projects.

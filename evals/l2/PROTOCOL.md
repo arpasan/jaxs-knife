@@ -8,8 +8,11 @@ grade. This is the live batch. Pytest on fixtures is only the grader check.
 **This batch:** Cursor Grok 4.6 only. The 18-job follow-up (S6, S7, S8 ×
 off/on × n=3) is in. Band B recovered hidden truth **9/9 off and 9/9 on**.
 Combined pass^1: S6 0/3→3/3, S7 2/3→3/3, S8 0/3→3/3. That lift is Band A.
-Do not claim better posteriors. S4 remains void this round. Scores:
-`results/S{6,7,8}_{without,with}_grok46.json`, `results/grok46_followup.json`.
+Do not claim better posteriors. S4 was re-run on the current CSV with a
+Band A `prior_sensitivity_refit` predicate: combined pass^1 **3/3 off and
+3/3 on**. Band B recovered α, β, σ on all six tries. Scores:
+`results/S{4,6,7,8}_{without,with}_grok46.json`,
+`results/grok46_followup.json`, `results/grok46_s4.json`.
 
 Opus 4.7 / Fable deferred until this Grok arm is clean.
 
@@ -37,12 +40,17 @@ Scores: `results/S3_without_grok46.json`.
 **S3 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +2/3.
 Scores: `results/S3_with_grok46.json`.
 
-**S4 off (Grok 4.6):** pass^1 = 0/3, pass^3 = 0. Band A passed twice;
-Band B missed intercept α = 0.1 on all three. **Post-critique:** the
-CSV's OLS intercept was 0.216 ± 0.041 — the fixture was unrecoverable,
-not a coverage floor. CSV regenerated (`generate_pack_data.py`). Old
-S4 scores are void. Re-run S4 off+on.
-Scores: `results/S4_without_grok46.json` (void).
+**S4 off (Grok 4.6, re-run):** combined pass^1 = 3/3, pass^3 = 1.
+Band A 3/3 including `prior_sensitivity_refit`. Band B recovered α, β, σ
+on all three. First-batch S4 scores (unrecoverable CSV) stay void and
+were overwritten by this cell.
+Scores: `results/S4_without_grok46.json`.
+
+**S4 on (Grok 4.6, re-run):** combined pass^1 = 3/3, pass^3 = 1.
+Band A 3/3 including the sensitivity refit. Band B 3/3. Combined delta
+vs this off arm is 0 after the `inference_data.nc` preference fix
+(first grade had off 2/3 from reading `prior_predictive.nc`).
+Scores: `results/S4_with_grok46.json`.
 
 **S5 off (Grok 4.6):** pass^1 = 0/3. All three used a constrained `sigma`
 and prior predictive; all three missed a limitations section and the

@@ -1,0 +1,23 @@
+{
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "date": "2026-08-17",
+  "n": 3,
+  "packs": ["S4"],
+  "note": "S4 re-run on the recoverable CSV with Band A prior_sensitivity_refit. First-batch S4 scores were void. Band B recovered alpha, beta, sigma 3/3 off and 3/3 on. Combined lift is 0. Do not claim better posteriors.",
+  "mean_combined_pass1_off": 1.0,
+  "mean_combined_pass1_on": 1.0,
+  "mean_band_a_pass1_off": 1.0,
+  "mean_band_a_pass1_on": 1.0,
+  "mean_band_b_pass1_off": 1.0,
+  "mean_band_b_pass1_on": 1.0,
+  "cells": {
+    "S4": {
+      "off_combined": [true, true, true],
+      "on_combined": [true, true, true],
+      "off_band_a": [true, true, true],
+      "on_band_a": [true, true, true],
+      "off_band_b": [true, true, true],
+      "on_band_b": [true, true, true]
+    }
+  }
+}

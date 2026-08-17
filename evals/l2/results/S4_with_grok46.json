@@ -2,47 +2,156 @@
   "pack": "S4",
   "condition": "with",
   "model": "cursor-grok-4.6-xhigh-fast",
-  "git": "2cde079",
+  "git": "e274938",
+  "date": "2026-08-17",
   "n": 3,
   "successes": [
-    false,
-    false,
-    false
+    true,
+    true,
+    true
   ],
-  "pass_at_1": 0.0,
-  "pass_at_3": 0.0,
+  "pass_at_1": 1.0,
+  "pass_at_3": 1.0,
   "band_a_successes": [
     true,
     true,
     true
   ],
   "band_a_pass_at_1": 1.0,
-  "delta_vs_without_pass1": 0.0,
-  "delta_band_a_pass1": 0.33333333333333337,
+  "band_b_successes": [
+    true,
+    true,
+    true
+  ],
+  "band_b_pass_at_1": 1.0,
   "trials": [
     {
       "rep": 0,
-      "band_a": true,
       "band_a_failed": [],
-      "band_b": false,
-      "passed": false,
+      "band_a": true,
+      "band_b": true,
+      "band_b_detail": {
+        "parameters": {
+          "alpha": {
+            "truth": 0.1,
+            "hdi": [
+              0.020711513,
+              0.19268958
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "beta": {
+            "truth": 0.7,
+            "hdi": [
+              0.55637168,
+              0.78814018
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "sigma": {
+            "truth": 0.2,
+            "hdi": [
+              0.13408715,
+              0.25923882
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": true,
+        "nominal": 0.94,
+        "scored": true
+      },
+      "passed": true,
       "contam": []
     },
     {
       "rep": 1,
-      "band_a": true,
       "band_a_failed": [],
-      "band_b": false,
-      "passed": false,
+      "band_a": true,
+      "band_b": true,
+      "band_b_detail": {
+        "parameters": {
+          "alpha": {
+            "truth": 0.1,
+            "hdi": [
+              0.019743721,
+              0.19075224
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "beta": {
+            "truth": 0.7,
+            "hdi": [
+              0.55759763,
+              0.79150695
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "sigma": {
+            "truth": 0.2,
+            "hdi": [
+              0.13694088,
+              0.26333302
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": true,
+        "nominal": 0.94,
+        "scored": true
+      },
+      "passed": true,
       "contam": []
     },
     {
       "rep": 2,
-      "band_a": true,
       "band_a_failed": [],
-      "band_b": false,
-      "passed": false,
+      "band_a": true,
+      "band_b": true,
+      "band_b_detail": {
+        "parameters": {
+          "alpha": {
+            "truth": 0.1,
+            "hdi": [
+              0.021830067,
+              0.18690494
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "beta": {
+            "truth": 0.7,
+            "hdi": [
+              0.55941099,
+              0.78276672
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "sigma": {
+            "truth": 0.2,
+            "hdi": [
+              0.13912843,
+              0.25966992
+            ],
+            "nominal": 0.94,
+            "ok": true
+          }
+        },
+        "passed": true,
+        "nominal": 0.94,
+        "scored": true
+      },
+      "passed": true,
       "contam": []
     }
-  ]
+  ],
+  "delta_vs_without_pass1": 0.0,
+  "delta_vs_without_pass3": 0.0
 }

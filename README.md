@@ -1,10 +1,9 @@
 <p align="center">
-  <img src="docs/jaxs-knife.svg" width="280" alt="jaxs-knife"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.svg">
+    <img src="docs/wordmark-light.svg" width="440" alt="jaxs-knife">
+  </picture>
 </p>
-
-<h1 align="center">
-  <font color="#E67A2E">jaxs-knife</font>
-</h1>
 
 <p align="center"><em>Stan when you can. JAX when you must.</em></p>
 
@@ -58,7 +57,7 @@ CmdStanPy and BlackJAX NUTS on the same mini-normal data.
 ```
 jaxs-knife/            Agent Skill (SKILL.md, references/, scripts/)
 evals/                 Tests and scenario prompts (not part of the skill)
-docs/jaxs-knife.svg    Wordmark
+docs/wordmark-*.svg    Wordmark (light / dark)
 environment.yml        Conda environment
 ```
 

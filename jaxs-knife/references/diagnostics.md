@@ -25,6 +25,8 @@ Bulk (means) and tail (intervals) both matter.
 | ≥ 100 × n_chains | Sufficient for most summaries |
 | Below that | More draws or reparameterize |
 
+Gate ESS on the interval you print (tail ESS for a 94% HDI), not only a global check. Report Monte Carlo standard error next to every printed posterior number (BDA3 §10.5).
+
 ## Divergences
 
 Even a few can bias the posterior. Refuse to interpret. Reparameterize (non-centered, Jacobian, QR), **then** raise `adapt_delta` / `target_accept` to 0.95–0.99. Raising adapt first is a last resort.

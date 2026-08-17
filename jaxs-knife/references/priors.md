@@ -23,7 +23,7 @@ Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass
 
 ## Prior predictive (mandatory, before MCMC)
 
-Stan: `generated quantities` with `*_rng` and no conditioning on `y`, or a dummy-data pass. JAX: `vmap` the observation model over prior draws of unconstrained parameters (after `constrain`).
+Prefer a `prior_only` data flag in the **same** program so the prior predictive cannot drift from the fitted model. Stan: `generated quantities` with `*_rng` and no conditioning on `y` when `prior_only` is set. JAX: `vmap` the observation model over prior draws of unconstrained parameters (after `constrain`).
 
 If prior predictive values are impossible (negative blood pressure, billion-dollar daily spend), fix priors first.
 

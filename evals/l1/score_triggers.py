@@ -13,7 +13,7 @@ from typing import Dict, List, Set, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILL = ROOT / "stan-jax-workflow" / "SKILL.md"
+SKILL = ROOT / "jaxs-knife" / "SKILL.md"
 LABELS = Path(__file__).resolve().parent / "trigger_eval_set.json"
 
 

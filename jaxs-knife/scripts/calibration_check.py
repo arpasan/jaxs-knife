@@ -35,6 +35,8 @@ def _hdi_contains(
 ) -> np.ndarray:
     """Per-observation whether ``observed`` falls in the ``prob`` HDI of ``draws``.
 
+    Uses the lowest-width interval, not a central ETI / quantile interval.
+
     Parameters
     ----------
     draws : np.ndarray
@@ -49,11 +51,15 @@ def _hdi_contains(
     np.ndarray
         Boolean mask, shape ``(n_obs,)``.
     """
-    lower_q = (1.0 - prob) / 2.0
-    upper_q = 1.0 - lower_q
-    lo = np.quantile(draws, lower_q, axis=0)
-    hi = np.quantile(draws, upper_q, axis=0)
-    return (observed >= lo) & (observed <= hi)
+    n_draws, n_obs = int(draws.shape[0]), int(draws.shape[1])
+    n_in = max(int(np.ceil(prob * n_draws)), 1)
+    inside = np.empty(n_obs, dtype=bool)
+    for j in range(n_obs):
+        x = np.sort(draws[:, j])
+        widths = x[n_in - 1 :] - x[: n_draws - n_in + 1]
+        i = int(np.argmin(widths))
+        inside[j] = bool(x[i] <= observed[j] <= x[i + n_in - 1])
+    return inside
 
 
 def assess_calibration(
@@ -165,6 +171,10 @@ def generate_calibration_report(
         "variable": resolved,
         "n_observations": n_obs,
         "pit_method": "nominal_hdi_coverage",
+        "note": (
+            "PPC coverage on this dataset. Not a calibration or frequentist "
+            "coverage claim; those need repeated datasets."
+        ),
         "assessment": assessment,
     }
 

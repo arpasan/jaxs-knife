@@ -8,6 +8,7 @@ PACKS = Path(__file__).resolve().parent / "packs"
 FORBIDDEN = (
     "stan-jax-workflow",
     "standoff-bayes",
+    "jaxs-knife",
     "rubric.json",
     "eval_metadata.json",
     "truth.json",

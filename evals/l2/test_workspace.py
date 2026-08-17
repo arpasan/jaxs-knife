@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from isolation import IsolationError
-from workspace import pack_truth, prepare_workspace
+from workspace import pack_aliases, pack_band_a_extra, pack_truth, prepare_workspace
 
 
 def test_without_skill_copies_prompt_and_data_only(tmp_path: Path) -> None:
@@ -32,7 +32,7 @@ def test_with_skill_does_not_copy_evals() -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         prepare_workspace("S1", dest, condition="with")
-        skill = dest / ".cursor" / "skills" / "stan-jax-workflow"
+        skill = dest / ".cursor" / "skills" / "jaxs-knife"
         assert (skill / "SKILL.md").is_file()
         assert not (dest / "evals").exists()
         assert not (skill / "evals").exists()
@@ -55,6 +55,10 @@ def test_truth_stays_in_pack_meta() -> None:
     assert truth is not None
     assert truth["beta"] == 0.9
     assert pack_truth("S2") is None
+    assert "ld50" in pack_aliases("S6")
+    assert "mu1" in pack_aliases("S7")
+    assert pack_band_a_extra("S4") == ["prior_sensitivity_refit"]
+    assert pack_band_a_extra("S1") == []
 
 
 def test_run_trial_prepare_and_grade(tmp_path: Path) -> None:

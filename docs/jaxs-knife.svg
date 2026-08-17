@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" shape-rendering="crispEdges" role="img" aria-label="jaxs-knife">
+  <!-- Pixel blade: handle, edge, two nicks (Stan / JAX) -->
+  <rect width="32" height="16" fill="#1a1a1a"/>
+  <!-- handle -->
+  <rect x="2" y="5" width="5" height="6" fill="#5c4033"/>
+  <rect x="3" y="6" width="3" height="4" fill="#3d2a22"/>
+  <!-- ricasso -->
+  <rect x="7" y="6" width="2" height="4" fill="#c9c2b2"/>
+  <!-- blade -->
+  <rect x="9" y="6" width="16" height="4" fill="#e67a2e"/>
+  <rect x="25" y="7" width="3" height="2" fill="#e67a2e"/>
+  <rect x="28" y="8" width="2" height="1" fill="#f0a05a"/>
+  <!-- spine -->
+  <rect x="9" y="5" width="16" height="1" fill="#f4b06a"/>
+  <!-- Stan nick -->
+  <rect x="14" y="5" width="2" height="2" fill="#c0392b"/>
+  <!-- JAX nick -->
+  <rect x="19" y="5" width="2" height="2" fill="#1abc9c"/>
+  <!-- edge shadow -->
+  <rect x="9" y="10" width="16" height="1" fill="#b85f1c"/>
+</svg>

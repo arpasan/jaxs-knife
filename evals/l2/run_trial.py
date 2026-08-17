@@ -15,11 +15,19 @@ from typing import Any, Dict, List
 
 from grade import grade_trial
 from isolation import IsolationError
-from workspace import Condition, pack_truth, prepare_workspace
+from workspace import (
+    Condition,
+    pack_aliases,
+    pack_band_a_extra,
+    pack_truth,
+    prepare_workspace,
+)
 
 L2_ROOT = Path(__file__).resolve().parent
 DEFAULT_RUNS = L2_ROOT / "local_runs"
 KEEP_AFTER_WIPE = frozenset({"batch.json", "receipt.json", "grade.json"})
+KEEP_TEXT_SUFFIXES = frozenset({".md", ".py", ".stan", ".json", ".txt"})
+DROP_ON_WIPE = frozenset({".nc", ".png", ".pdf", ".npy", ".so", ".o", ".hpp", ".d"})
 
 
 def new_run_root(base: Path = DEFAULT_RUNS) -> Path:
@@ -120,10 +128,14 @@ def grade_replicates(workspaces: List[Path], pack_id: str) -> Dict[str, Any]:
         Per-trial grades and a success vector.
     """
     truth = pack_truth(pack_id)
+    aliases = pack_aliases(pack_id)
+    extra = pack_band_a_extra(pack_id)
     rows: List[Dict[str, Any]] = []
     successes: List[bool] = []
     for ws in workspaces:
-        report = grade_trial(ws, truth=truth)
+        report = grade_trial(
+            ws, truth=truth, aliases=aliases, extra_band_a=extra
+        )
         rows.append(report)
         successes.append(bool(report["passed"]))
     return {
@@ -134,27 +146,46 @@ def grade_replicates(workspaces: List[Path], pack_id: str) -> Dict[str, Any]:
     }
 
 
-def wipe_workspaces(run_root: Path) -> int:
-    """Delete agent trees under ``run_root``. Keep grade/receipt JSON.
+def wipe_workspaces(run_root: Path, *, keep_text: bool = True) -> int:
+    """Strip heavy artifacts under ``run_root``. Keep grade/receipt JSON.
+
+    When ``keep_text`` is true, retain ``report.md`` and other small text
+    (``.py``, ``.stan``, ``.json``) so a later regrade is possible. Drop
+    ``.nc``, images, and compiled Stan bits.
 
     Parameters
     ----------
     run_root : Path
         A local_runs timestamp directory.
+    keep_text : bool
+        Keep small text artifacts inside ``rep-*`` folders.
 
     Returns
     -------
     int
-        Number of workspace directories removed.
+        Number of workspace directories removed (full wipe) or stripped.
     """
     root = run_root.resolve()
     removed = 0
     if not root.exists():
         return 0
     for path in sorted(root.rglob("rep-*"), reverse=True):
-        if path.is_dir() and path.name.startswith("rep-"):
+        if not (path.is_dir() and path.name.startswith("rep-")):
+            continue
+        if not keep_text:
             shutil.rmtree(path)
             removed += 1
+            continue
+        for file_path in path.rglob("*"):
+            if not file_path.is_file():
+                continue
+            suffix = file_path.suffix.lower()
+            drop = suffix in DROP_ON_WIPE or (
+                suffix not in KEEP_TEXT_SUFFIXES and file_path.stat().st_size > 200_000
+            )
+            if drop:
+                file_path.unlink()
+        removed += 1
     return removed
 
 

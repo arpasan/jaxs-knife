@@ -83,3 +83,18 @@ def test_engine_label_does_not_change_ratings() -> None:
     a = check_diagnostics(diagnostics=cmdstan_like)
     b = check_diagnostics(diagnostics=nutpie_like)
     assert a["convergence"]["rating"] == b["convergence"]["rating"]
+
+
+def test_convergence_fallback_does_not_raise(monkeypatch: pytest.MonkeyPatch) -> None:
+    import diagnose_model as dm
+
+    monkeypatch.setattr(dm, "HAS_DIAGNOSE", False)
+
+    class _Boom:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            raise RuntimeError("summary exploded")
+
+    monkeypatch.setattr(dm.az, "summary", _Boom)
+    report = generate_report(_healthy_idata())
+    assert report["convergence"]["all_ok"] is False
+    assert "error" in report["convergence"]

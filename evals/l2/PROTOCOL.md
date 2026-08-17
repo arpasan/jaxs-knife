@@ -3,11 +3,20 @@
 Skill-on vs skill-off, same model, three independent tries, deterministic
 grade. This is the live batch. Pytest on fixtures is only the grader check.
 
-## Status (2026-08-16)
+## Status (2026-08-17)
 
-**This batch:** Cursor Grok 4.6 only (36 cells). Opus 4.7 / Fable deferred
-until Usage events after Grok look fine. Fable is not the default second
-model (cost).
+**This batch:** Cursor Grok 4.6 only. The 18-job follow-up (S6, S7, S8 ×
+off/on × n=3) is in. Band B recovered hidden truth **9/9 off and 9/9 on**.
+Combined pass^1: S6 0/3→3/3, S7 2/3→3/3, S8 0/3→3/3. That lift is Band A.
+Do not claim better posteriors. S4 remains void this round. Scores:
+`results/S{6,7,8}_{without,with}_grok46.json`, `results/grok46_followup.json`.
+
+Opus 4.7 / Fable deferred until this Grok arm is clean.
+
+**First batch (keep):** S1, S2, S3, S5. Publish Band A with and without
+the literal `1.01` predicate. Do not publish raw Band A 18/18 (grader
+once read the copied skill tree; fixed). S4/S8 first-batch scores remain
+void.
 
 **S1 off (Grok 4.6):** pass^1 = 1/3, pass^3 = 0.
 **S1 on (Grok 4.6):** pass^1 = 3/3, pass^3 = 1. Delta pass^1 = +2/3.
@@ -51,11 +60,9 @@ Scores: `results/S8_without_grok46.json` (void).
 
 **Grok 4.6 first batch (36 cells) is in.** Do not publish raw Band A
 18/18: the grader read the copied skill tree (fixed in `band_a.py`).
-Publish the report.md-only subset: 5/18 off vs 18/18 on. S1/S2/S3/S5
-scores stay. S4/S8 scores are void (bad CSVs, now regenerated). JAX
-template in `SKILL.md` no longer double-counts the Jacobian. Next live
-cells: S4 and S8 (off+on) plus S6 (bioassay) and S7 (mixture), n = 3
-each — 24 jobs, not a second full 36. Aggregate of the first batch:
+Publish the report.md-only subset: 5/18 off vs 18/18 on, and the same
+subset with `rhat_1_01` dropped (14/18 vs 18/18). S1/S2/S3/S5 scores
+stay. S4/S8 first-batch scores are void. Aggregate:
 `results/grok46_batch.json`. Fable live pass still deferred.
 
 ## Design
@@ -88,10 +95,15 @@ stronger second model is a second paired delta, not a Grok-vs-Opus contest.
 3. Three **new** agents, blank memory, folder = that `rep-*` only, model fixed.
 4. `python evals/l2/run_trial.py --pack S1 --condition without --n 3 --grade` (or `grade.py` on each `rep-*`).
 5. Copy the small score JSON to `results/` and commit it.
-6. `python evals/l2/run_trial.py --wipe --run-root evals/l2/local_runs/<stamp>`
+6. `python evals/l2/emit_results.py --pack S6 --condition without --batch <batch.json>`
+7. After review, `python evals/l2/run_trial.py --wipe --run-root <run-root>`
+   (keeps `report.md` / `.py` / `.stan` / `.json`; drops `.nc`, images,
+   binaries).
 
-Do not open 36 extra Cursor projects. Do not write `eval_metadata.json`
+Do not open extra Cursor projects. Do not write `eval_metadata.json`
 beside outputs. Do not run solvers in a chat that has seen this protocol.
+Do not dump library source (`NUTSInfo`, `az.summary` internals). Bound
+introspection; time out hung inspect commands.
 
 ## Reproducibility
 
@@ -108,6 +120,7 @@ Opus/Fable cells hit Other Models.
 
 ## Hygiene
 
-- Agent trees only under `evals/l2/local_runs/` (gitignored).
-- Wipe after scoring. GitHub keeps `results/*.json` only.
-- No leftover skill copies, Stan binaries, or `.cursor` project entries.
+- Agent trees only under `~/Downloads/jaxs-knife-l2-runs/` (outside the repo).
+- After scoring and a learning review, wipe heavy artifacts. GitHub keeps
+  `results/*.json` only. Small text may stay in the run tree until wipe.
+- No leftover skill copies, Stan binaries, or extra `.cursor` projects.

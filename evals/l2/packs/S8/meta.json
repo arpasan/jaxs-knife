@@ -5,5 +5,9 @@
   "truth": {
     "mu": 0.15,
     "sigma": 0.45
+  },
+  "aliases": {
+    "mu": ["mu", "mean"],
+    "sigma": ["sigma", "sig", "scale"]
   }
 }

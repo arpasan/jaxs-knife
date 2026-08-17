@@ -4,16 +4,35 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Mapping, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
+
+_L2 = Path(__file__).resolve().parent
+if str(_L2) not in sys.path:
+    sys.path.insert(0, str(_L2))
+from band_b import hdi
 
 PACKS = Path(__file__).resolve().parent / "packs"
 Array = NDArray[np.floating]
 # Two-sided 94% Gaussian quantile (Φ^{-1}(0.97)).
 Z_94 = 1.880793608151251
+
+S4_ALPHA = 0.1
+S4_BETA = 0.7
+S4_SIGMA = 0.2
+S8_MU = 0.15
+S8_SIGMA = 0.45
+S6_ALPHA = -0.4
+S6_BETA = 1.5
+S6_LD50 = -S6_ALPHA / S6_BETA
+S7_MU1 = -1.1
+S7_MU2 = 1.4
+S7_WEIGHT = 0.4
+S7_SIGMA = 0.5
 
 
 def _z_nominal(nominal: float) -> float:
@@ -21,6 +40,19 @@ def _z_nominal(nominal: float) -> float:
     if abs(nominal - 0.94) > 1e-12:
         raise ValueError("this helper is pinned to a 94% interval")
     return Z_94
+
+
+def _chi2_ppf(p: float, df: float) -> float:
+    """Chi-square quantile. SciPy if present; Wilson–Hilferty otherwise."""
+    try:
+        from scipy.stats import chi2
+
+        return float(chi2.ppf(p, df))
+    except Exception:
+        from scipy.stats import norm
+
+        z = float(norm.ppf(p))
+        return float(df * (1.0 - 2.0 / (9.0 * df) + z * np.sqrt(2.0 / (9.0 * df))) ** 3)
 
 
 def _write_xy(path: Path, x: Array, y: Array) -> None:
@@ -39,6 +71,18 @@ def _write_y(path: Path, y: Array) -> None:
             writer.writerow([f"{float(yi):.6f}"])
 
 
+def _read_xy(path: Path) -> Tuple[Array, Array]:
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    x = np.asarray([float(r["x"]) for r in rows], dtype=float)
+    y = np.asarray([float(r["y"]) for r in rows], dtype=float)
+    return x, y
+
+
+def _read_y(path: Path) -> Array:
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    return np.asarray([float(r["y"]) for r in rows], dtype=float)
+
+
 def _ols_covers(
     x: Array,
     y: Array,
@@ -55,7 +99,36 @@ def _ols_covers(
     cov = (resid.dot(resid) / (n - p)) * np.linalg.inv(design.T @ design)
     se = np.sqrt(np.diag(cov))
     z = _z_nominal(nominal)
-    return bool(abs(float(hat[0]) - alpha) <= z * float(se[0]) and abs(float(hat[1]) - beta) <= z * float(se[1]))
+    return bool(
+        abs(float(hat[0]) - alpha) <= z * float(se[0])
+        and abs(float(hat[1]) - beta) <= z * float(se[1])
+    )
+
+
+def _sigma_chi2_covers(
+    resid: Array,
+    df: int,
+    truth: float,
+    nominal: float = 0.94,
+) -> bool:
+    """Jeffreys / scaled-inv-χ² 94% interval for residual scale."""
+    if df < 2:
+        return False
+    s2 = float(np.dot(resid, resid) / df)
+    tail = (1.0 - nominal) / 2.0
+    lo = float(np.sqrt(df * s2 / _chi2_ppf(1.0 - tail, float(df))))
+    hi = float(np.sqrt(df * s2 / _chi2_ppf(tail, float(df))))
+    return lo <= truth <= hi
+
+
+def _s4_covers(x: Array, y: Array) -> bool:
+    design = np.column_stack([np.ones(len(x)), x])
+    hat, *_ = np.linalg.lstsq(design, y, rcond=None)
+    resid = y - design @ hat
+    df = int(len(y) - design.shape[1])
+    return _ols_covers(x, y, alpha=S4_ALPHA, beta=S4_BETA) and _sigma_chi2_covers(
+        resid, df, S4_SIGMA
+    )
 
 
 def _mean_covers(y: Array, truth: float, nominal: float = 0.94) -> bool:
@@ -63,11 +136,57 @@ def _mean_covers(y: Array, truth: float, nominal: float = 0.94) -> bool:
     return bool(abs(float(y.mean()) - truth) <= _z_nominal(nominal) * se)
 
 
+def _normal_exp_reference_covers(
+    y: Array,
+    truth: Mapping[str, float],
+    *,
+    nominal: float = 0.94,
+) -> bool:
+    """Grid posterior under skill defaults: μ ~ N(0, 2.5), σ ~ Exp(1)."""
+    y = np.asarray(y, dtype=float)
+    n = int(y.size)
+    mus = np.linspace(-1.5, 1.8, 201)
+    sigmas = np.linspace(0.08, 1.6, 201)
+    y2 = float(np.dot(y, y))
+    ysum = float(y.sum())
+    logp = np.empty((mus.size, sigmas.size), dtype=float)
+    log_sig = np.log(sigmas)
+    for i, mu in enumerate(mus):
+        sse = y2 - 2.0 * mu * ysum + n * mu * mu
+        logp[i] = (
+            -n * log_sig
+            - 0.5 * sse / (sigmas**2)
+            - 0.5 * (mu / 2.5) ** 2
+            - sigmas
+        )
+    logp -= float(logp.max())
+    weight = np.exp(logp)
+    weight /= float(weight.sum())
+    rng = np.random.default_rng(0)
+    flat = weight.ravel()
+    idx = rng.choice(flat.size, size=6000, p=flat)
+    mu_s = mus[idx // sigmas.size]
+    sig_s = sigmas[idx % sigmas.size]
+    for name, draws in (("mu", mu_s), ("sigma", sig_s)):
+        lo, hi = hdi(np.asarray(draws, dtype=float), nominal)
+        if not (lo <= float(truth[name]) <= hi):
+            return False
+    return True
+
+
+def _s8_covers(y: Array) -> bool:
+    return (
+        _mean_covers(y, S8_MU)
+        and _sigma_chi2_covers(y - float(y.mean()), len(y) - 1, S8_SIGMA)
+        and _normal_exp_reference_covers(y, {"mu": S8_MU, "sigma": S8_SIGMA})
+    )
+
+
 def _reject_until(
     factory: Callable[[np.random.Generator], Tuple[Array, ...]],
     ok: Callable[..., bool],
     seed_prefix: str,
-    max_tries: int = 200,
+    max_tries: int = 400,
 ) -> Tuple[Array, ...]:
     for i in range(max_tries):
         rng = np.random.default_rng(sum(map(ord, f"{seed_prefix}-try{i}")))
@@ -80,13 +199,10 @@ def _reject_until(
 def write_s4() -> Path:
     def factory(rng: np.random.Generator) -> Tuple[Array, Array]:
         x = np.linspace(-1.2, 1.2, 20)
-        y = 0.1 + 0.7 * x + rng.normal(0.0, 0.2, size=20)
+        y = S4_ALPHA + S4_BETA * x + rng.normal(0.0, S4_SIGMA, size=20)
         return x, y
 
-    def ok(x: Array, y: Array) -> bool:
-        return _ols_covers(x, y, alpha=0.1, beta=0.7)
-
-    x, y = _reject_until(factory, ok, "s4-psense-v2")
+    x, y = _reject_until(factory, _s4_covers, "s4-psense-v3")
     path = PACKS / "S4" / "data.csv"
     _write_xy(path, x, y)
     return path
@@ -94,24 +210,12 @@ def write_s4() -> Path:
 
 def write_s8() -> Path:
     def factory(rng: np.random.Generator) -> Tuple[Array]:
-        return (rng.normal(0.15, 0.45, size=30),)
+        return (rng.normal(S8_MU, S8_SIGMA, size=30),)
 
-    def ok(y: Array) -> bool:
-        return _mean_covers(y, 0.15)
-
-    (y,) = _reject_until(factory, ok, "s8-jax-v2")
+    (y,) = _reject_until(factory, _s8_covers, "s8-jax-v3")
     path = PACKS / "S8" / "data.csv"
     _write_y(path, y)
     return path
-
-
-S6_ALPHA = -0.4
-S6_BETA = 1.5
-S6_LD50 = -S6_ALPHA / S6_BETA
-S7_MU1 = -1.1
-S7_MU2 = 1.4
-S7_WEIGHT = 0.4
-S7_SIGMA = 0.5
 
 
 def _logit_irls(
@@ -210,6 +314,31 @@ def _em_two_normal(y: Array) -> Tuple[float, float, float]:
     return weight, mu1, mu2
 
 
+def _s7_covers(y: Array) -> bool:
+    weight, mu1, mu2 = _em_two_normal(y)
+    if not (
+        abs(mu1 - S7_MU1) < 0.35
+        and abs(mu2 - S7_MU2) < 0.35
+        and abs(weight - S7_WEIGHT) < 0.12
+    ):
+        return False
+    rng = np.random.default_rng(0)
+    boots = np.empty((80, 3), dtype=float)
+    for i in range(80):
+        samp = rng.choice(y, size=len(y), replace=True)
+        boots[i] = _em_two_normal(samp)
+    checks = (
+        (boots[:, 0], S7_WEIGHT),
+        (boots[:, 1], S7_MU1),
+        (boots[:, 2], S7_MU2),
+    )
+    for draws, truth in checks:
+        lo, hi = hdi(draws, 0.94)
+        if not (lo <= truth <= hi):
+            return False
+    return True
+
+
 def write_s7() -> Path:
     def factory(rng: np.random.Generator) -> Tuple[Array]:
         n = 90
@@ -219,32 +348,93 @@ def write_s7() -> Path:
         y[~z] = rng.normal(S7_MU2, S7_SIGMA, size=int((~z).sum()))
         return (y,)
 
-    def ok(y: Array) -> bool:
-        weight, mu1, mu2 = _em_two_normal(y)
-        return (
-            abs(mu1 - S7_MU1) < 0.35
-            and abs(mu2 - S7_MU2) < 0.35
-            and abs(weight - S7_WEIGHT) < 0.12
-        )
-
-    (y,) = _reject_until(factory, ok, "s7-mixture-v1")
+    (y,) = _reject_until(factory, _s7_covers, "s7-mixture-v2")
     path = PACKS / "S7" / "data.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     _write_y(path, y)
     return path
 
 
+def _read_s6(path: Path) -> Tuple[Array, Array, Array]:
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    dose = np.asarray([float(r["dose"]) for r in rows], dtype=float)
+    n_trials = np.asarray([float(r["n"]) for r in rows], dtype=float)
+    deaths = np.asarray([float(r["y"]) for r in rows], dtype=float)
+    return dose, n_trials, deaths
+
+
+def check_s4() -> bool:
+    path = PACKS / "S4" / "data.csv"
+    if not path.is_file():
+        return False
+    x, y = _read_xy(path)
+    return _s4_covers(x, y)
+
+
+def check_s8() -> bool:
+    path = PACKS / "S8" / "data.csv"
+    if not path.is_file():
+        return False
+    return _s8_covers(_read_y(path))
+
+
+def check_s6() -> bool:
+    path = PACKS / "S6" / "data.csv"
+    if not path.is_file():
+        return False
+    return _bioassay_covers(*_read_s6(path))
+
+
+def check_s7() -> bool:
+    path = PACKS / "S7" / "data.csv"
+    if not path.is_file():
+        return False
+    return _s7_covers(_read_y(path))
+
+
+CHECKERS: Dict[str, Callable[[], bool]] = {
+    "S4": check_s4,
+    "S8": check_s8,
+    "S6": check_s6,
+    "S7": check_s7,
+}
+WRITERS: Dict[str, Callable[[], Path]] = {
+    "S4": write_s4,
+    "S8": write_s8,
+    "S6": write_s6,
+    "S7": write_s7,
+}
+
+
 def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--packs", nargs="+", default=["S4", "S8", "S6", "S7"])
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="validate existing CSVs; do not write",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="rewrite even if the current CSV already passes",
+    )
     args = parser.parse_args(argv)
-    writers = {"S4": write_s4, "S8": write_s8, "S6": write_s6, "S7": write_s7}
+    failed = 0
     for pack_id in args.packs:
-        if pack_id not in writers:
+        if pack_id not in WRITERS:
             raise SystemExit(f"refuses to regenerate {pack_id} (would void live scores)")
-        writers[pack_id]()
+        ok = CHECKERS[pack_id]()
+        if args.check:
+            print(f"{pack_id} recoverable={ok}")
+            failed += int(not ok)
+            continue
+        if ok and not args.force:
+            print(f"{pack_id} already recoverable; left in place")
+            continue
+        WRITERS[pack_id]()
         print(f"wrote {pack_id}")
-    return 0
+    return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":

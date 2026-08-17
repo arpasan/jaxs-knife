@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 from band_a import evaluate_band_a
 from band_b import assess_recovery, posterior_from_idata
@@ -17,6 +17,8 @@ def grade_trial(
     trial_dir: Path,
     *,
     truth: Optional[Mapping[str, float]] = None,
+    aliases: Optional[Mapping[str, Sequence[str]]] = None,
+    extra_band_a: Optional[Sequence[str]] = None,
     idata_path: Optional[Path] = None,
     nominal: float = 0.94,
 ) -> Dict[str, Any]:
@@ -40,7 +42,7 @@ def grade_trial(
     """
     root = trial_dir.resolve()
     assert_sealed(root)
-    band_a = evaluate_band_a(root)
+    band_a = evaluate_band_a(root, extra=extra_band_a)
 
     band_b: Dict[str, Any] | None = None
     if truth:
@@ -57,10 +59,19 @@ def grade_trial(
         else:
             import arviz as az
 
-            idata = az.from_netcdf(nc)
-            posterior = posterior_from_idata(idata, tuple(truth.keys()))
-            band_b = assess_recovery(posterior, truth, nominal=nominal)
-            band_b["scored"] = True
+            try:
+                idata = az.from_netcdf(nc)
+                posterior = posterior_from_idata(
+                    idata, tuple(truth.keys()), aliases=aliases
+                )
+                band_b = assess_recovery(posterior, truth, nominal=nominal)
+                band_b["scored"] = True
+            except Exception as exc:
+                band_b = {
+                    "scored": True,
+                    "passed": False,
+                    "error": f"Band B extract failed: {exc}",
+                }
 
     passed = bool(band_a["passed"])
     if band_b is not None:

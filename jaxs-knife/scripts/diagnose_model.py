@@ -159,61 +159,78 @@ def check_convergence(
             "bfmi": {"ok": len(failed_chains) == 0, "failed_chains": failed_chains},
         }
 
-    param_names = _parameter_names(idata)
-    summary = az.summary(idata, var_names=param_names) if param_names else az.summary(idata)
-    posterior = idata.posterior
-    sizes = getattr(posterior, "sizes", None)
-    if sizes is not None and "chain" in sizes:
-        n_chains = int(sizes["chain"])
-    else:
-        n_chains = int(posterior.chain.size)
-    rhat = summary["r_hat"]
-    rhat_ok = bool(rhat.notna().all() and (rhat <= 1.01).all())
-    ess_bulk_ok = bool((summary["ess_bulk"] >= 100 * n_chains).all())
-    ess_tail_ok = bool((summary["ess_tail"] >= 100 * n_chains).all())
+    try:
+        param_names = _parameter_names(idata)
+        summary = az.summary(idata, var_names=param_names) if param_names else az.summary(idata)
+        posterior = idata.posterior
+        sizes = getattr(posterior, "sizes", None)
+        if sizes is not None and "chain" in sizes:
+            n_chains = int(sizes["chain"])
+        else:
+            n_chains = int(posterior.chain.size)
+        rhat = summary["r_hat"]
+        rhat_ok = bool(rhat.notna().all() and (rhat <= 1.01).all())
+        ess_bulk_ok = bool((summary["ess_bulk"] >= 100 * n_chains).all())
+        ess_tail_ok = bool((summary["ess_tail"] >= 100 * n_chains).all())
 
-    sample_stats = getattr(idata, "sample_stats", None)
-    data_vars = getattr(sample_stats, "data_vars", None) if sample_stats is not None else None
-    if data_vars is not None and "diverging" in data_vars:
-        n_div = int(idata.sample_stats["diverging"].sum())
-        total = int(idata.sample_stats["diverging"].size)
-        divergences = {
-            "count": n_div,
-            "pct": round(100 * n_div / total, 2) if total else 0.0,
-            "ok": n_div == 0,
+        sample_stats = getattr(idata, "sample_stats", None)
+        data_vars = getattr(sample_stats, "data_vars", None) if sample_stats is not None else None
+        if data_vars is not None and "diverging" in data_vars:
+            n_div = int(idata.sample_stats["diverging"].sum())
+            total = int(idata.sample_stats["diverging"].size)
+            divergences = {
+                "count": n_div,
+                "pct": round(100 * n_div / total, 2) if total else 0.0,
+                "ok": n_div == 0,
+            }
+        else:
+            divergences = {"count": 0, "pct": 0.0, "ok": True}
+
+        results: Dict[str, Any] = {
+            "rhat": {
+                "max": float(rhat.max()) if rhat.notna().any() else None,
+                "ok": rhat_ok,
+                "problematic_params": list(summary[(rhat > 1.01) | rhat.isna()].index),
+            },
+            "ess_bulk": {
+                "min": int(summary["ess_bulk"].min()),
+                "ok": ess_bulk_ok,
+                "problematic_params": list(
+                    summary[summary["ess_bulk"] < 100 * n_chains].index
+                ),
+            },
+            "ess_tail": {
+                "min": int(summary["ess_tail"].min()),
+                "ok": ess_tail_ok,
+                "problematic_params": list(
+                    summary[summary["ess_tail"] < 100 * n_chains].index
+                ),
+            },
+            "divergences": divergences,
+            "method": "manual",
         }
-    else:
-        divergences = {"count": 0, "pct": 0.0, "ok": True}
-
-    results: Dict[str, Any] = {
-        "rhat": {
-            "max": float(rhat.max()) if rhat.notna().any() else None,
-            "ok": rhat_ok,
-            "problematic_params": list(summary[(rhat > 1.01) | rhat.isna()].index),
-        },
-        "ess_bulk": {
-            "min": int(summary["ess_bulk"].min()),
-            "ok": ess_bulk_ok,
-            "problematic_params": list(
-                summary[summary["ess_bulk"] < 100 * n_chains].index
-            ),
-        },
-        "ess_tail": {
-            "min": int(summary["ess_tail"].min()),
-            "ok": ess_tail_ok,
-            "problematic_params": list(
-                summary[summary["ess_tail"] < 100 * n_chains].index
-            ),
-        },
-        "divergences": divergences,
-        "method": "manual",
-    }
-    results["all_ok"] = all(
-        results[k]["ok"] for k in ("rhat", "ess_bulk", "ess_tail", "divergences")
-    )
-    if logger is not None:
-        logger.info("Convergence via az.summary; all_ok=%s", results["all_ok"])
-    return results
+        results["all_ok"] = all(
+            results[k]["ok"] for k in ("rhat", "ess_bulk", "ess_tail", "divergences")
+        )
+        if logger is not None:
+            logger.info("Convergence via az.summary; all_ok=%s", results["all_ok"])
+        return results
+    except Exception as exc:
+        if logger is not None:
+            logger.exception("az.summary fallback failed")
+        return {
+            "all_ok": False,
+            "method": "manual",
+            "error": str(exc),
+            "rhat": {
+                "ok": False,
+                "max": None,
+                "problematic_params": ["diagnose_fallback_failed"],
+            },
+            "ess_bulk": {"ok": False, "problematic_params": ["diagnose_fallback_failed"]},
+            "ess_tail": {"ok": False, "problematic_params": ["diagnose_fallback_failed"]},
+            "divergences": {"count": 0, "pct": 0.0, "ok": False},
+        }
 
 
 def check_loo(

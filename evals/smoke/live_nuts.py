@@ -12,7 +12,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS = ROOT / "stan-jax-workflow" / "scripts"
+SCRIPTS = ROOT / "jaxs-knife" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from check_diagnostics import check_diagnostics, suggest_next_steps

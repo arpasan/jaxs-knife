@@ -1,5 +1,5 @@
 ---
-name: stan-jax-workflow
+name: jaxs-knife
 description: >
   Opinionated Bayesian modeling workflow for Stan (CmdStanPy / nutpie[stan]) and
   JAX (log-density + BlackJAX), sharing ArviZ InferenceData. Encodes the
@@ -13,10 +13,12 @@ description: >
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
-# Stan / JAX Bayesian Workflow
+# jaxs-knife
+
+Stan when you can. JAX when you must.
 
 Every analysis follows this sequence. Do not skip criticism.
 
@@ -24,12 +26,13 @@ Every analysis follows this sequence. Do not skip criticism.
 2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior.
 3. **Implement** — Pick an engine ([references/engines.md](references/engines.md)), then write the model.
 4. **Prior predictive** — Before MCMC. If draws are nonsense, fix priors first.
-5. **Inference** — Sample; save draws immediately.
-6. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
-7. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX).
-8. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
-9. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
-10. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not vibes.
+5. **Fake-data recovery** — Simulate from *this* model at known parameter values, fit, and confirm the named estimand is recovered. Only then fit the real data.
+6. **Inference** — Sample; save draws immediately.
+7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
+8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too.
+9. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
+10. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
+11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not vibes.
 
 ## Engine decision
 
@@ -103,6 +106,8 @@ import jax
 import jax.numpy as jnp
 from jax.scipy.stats import norm
 
+jax.config.update("jax_enable_x64", True)  # before the density; record precision in the appendix
+
 def constrain(z: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
     mu, z_sigma = z[0], z[1]
     sigma = jnp.exp(z_sigma)
@@ -123,17 +128,22 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 
 ## Critical rules
 
-- Prior predictive **before** sampling.
-- Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains.
+- Prior predictive **before** sampling. Prefer a `prior_only` data flag in the same program over a second, drifted copy.
+- Fake-data recovery **before** the real fit: known parameters in, named estimand recovered, then the data.
+- Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains. Gate ESS on the interval you print, not only a global check.
+- Report Monte Carlo standard error next to every printed posterior number.
 - Divergences: refuse to interpret. Reparameterize, then raise `adapt_delta` / `target_accept`.
 - E-BFMI and treedepth are first-class (`cmdstan diagnose` when the fit is CmdStan).
 - Constrained Stan declarations auto-adjust the Jacobian. Sampling a **transform** of a parameter needs `jacobian +=`.
-- Write JAX like Stan: constrain, Jacobian, log density, `vmap` GQ.
+- Write JAX like Stan: constrain, Jacobian, log density, `vmap` GQ. Enable `jax_enable_x64` before constructing the density.
+- Before trusting a hand-written log density: finite-difference vs. autodiff gradient agreement, and log-density agreement up to an additive constant against an independent reference (Stan, a tested bijector, or a second implementation). Prefer a tested bijector to a hand-rolled transform.
 - Pathfinder / Laplace / ADVI are approximations or NUTS inits unless labeled otherwise.
 - PPC *p*-values are not hypothesis tests. PSIS-LOO over WAIC. Pareto-k < 0.5 trust; 0.5–0.7 investigate; ≥ 0.7 K-fold or moment matching.
 - ΔELPD < 2 × dSE → indistinguishable; prefer the simpler model. Stacking when there is no winner. LOO is not NHST.
 - Power-scaling CJS > 0.05 is a flag to document, not a command to loosen priors.
 - Intervals: report **50% typical + 94% range**. No width is magic. 80% HDI is notebook ink, not the scientific default. HDI, not bare ETI.
+- A 94% HDI from one dataset is a statement about this posterior, not a calibration claim. Coverage and calibration require repeated datasets (SBC or simulated replications).
+- Decision functionals (contrasts, ratios, inverse-link doses) belong in generated quantities or `vmap`, not a numpy rewrite after sampling.
 - Posterior **mean** of predictive probabilities, never median.
 - Probability language. Never “significant” / p-values.
 - Save draws before post-processing (`inference_data.nc`).
@@ -171,3 +181,10 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 | PPC misses data | Misspecification | Heavier tails, overdispersion, hierarchy |
 | Pareto-k ≥ 0.7 | Influential points | Inspect; Student-t; K-fold |
 | nutpie compile fail | Toolchain / BridgeStan | CmdStanPy `sample()` fallback |
+
+## Sources
+
+- Gelman, Vehtari, Simpson, Margossian, Carpenter, Yao, Kennedy, Gabry, Bürkner, and Modrák (2020), [Bayesian Workflow](https://arxiv.org/abs/2011.01808).
+- Vehtari, Gelman, Simpson, Carpenter, and Bürkner (2021), rank-normalized split R-hat and ESS.
+- Vehtari, Gelman, and Gabry (2017), PSIS-LOO and WAIC.
+- Carpenter (2025), [It’s a JAX, JAX, JAX, JAX World](https://statmodeling.stat.columbia.edu/2025/10/03/its-a-jax-jax-jax-jax-world/) — write the density in JAX; do not transpile Stan to XLA.

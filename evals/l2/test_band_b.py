@@ -35,3 +35,54 @@ def test_recovery_fails_when_parameter_missing() -> None:
     report = assess_recovery({"mu": np.zeros(10)}, {"sigma": 1.0}, nominal=0.94)
     assert report["passed"] is False
     assert report["parameters"]["sigma"]["ok"] is False
+
+
+class _Var:
+    def __init__(self, values: np.ndarray) -> None:
+        self.values = values
+
+
+class _Post:
+    def __init__(self, mapping: dict) -> None:
+        self.data_vars = list(mapping)
+        self._m = {k: _Var(v) for k, v in mapping.items()}
+
+    def __getitem__(self, name: str) -> _Var:
+        return self._m[name]
+
+
+class _Idata:
+    def __init__(self, **vars: np.ndarray) -> None:
+        self.posterior = _Post(vars)
+
+
+def test_posterior_from_idata_omits_missing_names() -> None:
+    from band_b import posterior_from_idata
+
+    idata = _Idata(mu=np.zeros((2, 10)))
+    out = posterior_from_idata(idata, ("mu", "sigma"))
+    assert "mu" in out
+    assert "sigma" not in out
+
+
+def test_posterior_from_idata_aliases_ld50() -> None:
+    from band_b import posterior_from_idata
+
+    draws = np.full((2, 20), 0.25)
+    idata = _Idata(LD50=draws)
+    out = posterior_from_idata(idata, ("ld50",))
+    assert "ld50" in out
+    assert float(out["ld50"].mean()) == 0.25
+
+
+def test_posterior_from_idata_splits_ordered_mu() -> None:
+    from band_b import posterior_from_idata
+
+    mu = np.stack(
+        [np.full((2, 15), -1.1), np.full((2, 15), 1.4)],
+        axis=-1,
+    )
+    idata = _Idata(mu=mu)
+    out = posterior_from_idata(idata, ("mu1", "mu2"))
+    assert abs(float(out["mu1"].mean()) + 1.1) < 1e-12
+    assert abs(float(out["mu2"].mean()) - 1.4) < 1e-12

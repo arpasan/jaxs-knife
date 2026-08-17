@@ -1,4 +1,4 @@
-name: standoff-bayes
+name: jaxs-knife
 channels:
   - conda-forge
 dependencies:

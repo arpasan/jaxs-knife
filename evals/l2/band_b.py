@@ -2,10 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
+
+DEFAULT_ALIASES: Dict[str, tuple[str, ...]] = {
+    "ld50": ("ld50", "LD50", "ld_50", "dose50", "x50"),
+    "mu1": ("mu1", "mu_1", "mu[1]"),
+    "mu2": ("mu2", "mu_2", "mu[2]"),
+    "weight": ("weight", "theta", "pi", "lambda", "mix_weight"),
+    "alpha": ("alpha", "a", "intercept"),
+    "beta": ("beta", "b", "slope"),
+    "sigma": ("sigma", "sig", "scale"),
+    "mu": ("mu", "mean"),
+}
 
 
 def hdi(draws: NDArray[np.floating], prob: float) -> tuple[float, float]:
@@ -72,23 +83,76 @@ def assess_recovery(
     return {"parameters": rows, "passed": all_ok, "nominal": nominal}
 
 
-def posterior_from_idata(idata: Any, names: tuple[str, ...]) -> Dict[str, NDArray[np.floating]]:
-    """Extract named posterior arrays from InferenceData / DataTree.
+def _var_names(post: Any) -> list[str]:
+    data_vars = getattr(post, "data_vars", None)
+    if data_vars is None:
+        return []
+    return [str(name) for name in data_vars]
+
+
+def _get_values(post: Any, name: str) -> Optional[NDArray[np.floating]]:
+    names = _var_names(post)
+    lookup = {item: item for item in names}
+    lookup.update({item.lower(): item for item in names})
+    key = lookup.get(name) or lookup.get(name.lower())
+    if key is None:
+        return None
+    try:
+        return np.asarray(post[key].values, dtype=float)
+    except Exception:
+        return None
+
+
+def _vector_component(
+    post: Any,
+    canonical: str,
+) -> Optional[NDArray[np.floating]]:
+    """Map ``mu1`` / ``mu2`` onto a length-2 ``mu`` (ordered constraint)."""
+    if canonical not in {"mu1", "mu2"}:
+        return None
+    arr = _get_values(post, "mu")
+    if arr is None or arr.ndim < 1 or arr.shape[-1] != 2:
+        return None
+    idx = 0 if canonical == "mu1" else 1
+    return arr[..., idx]
+
+
+def posterior_from_idata(
+    idata: Any,
+    names: tuple[str, ...],
+    aliases: Optional[Mapping[str, Sequence[str]]] = None,
+) -> Dict[str, NDArray[np.floating]]:
+    """Extract named posterior arrays. Missing names are omitted, not raised.
 
     Parameters
     ----------
     idata : Any
         ArviZ object with ``.posterior``.
     names : tuple[str, ...]
-        Parameter names.
+        Canonical parameter names (from pack ``meta.json``).
+    aliases : Mapping[str, Sequence[str]], optional
+        Extra names per canonical key.
 
     Returns
     -------
     Dict[str, NDArray]
-        Draw arrays.
+        Draw arrays for names that were found.
     """
     out: Dict[str, NDArray[np.floating]] = {}
     post = idata.posterior
+    alias_map: Dict[str, tuple[str, ...]] = dict(DEFAULT_ALIASES)
+    if aliases:
+        for key, values in aliases.items():
+            alias_map[str(key)] = tuple(str(item) for item in values)
     for name in names:
-        out[name] = np.asarray(post[name].values, dtype=float)
+        found = _get_values(post, name)
+        if found is None:
+            for alt in alias_map.get(name, ()):
+                found = _get_values(post, alt)
+                if found is not None:
+                    break
+        if found is None:
+            found = _vector_component(post, name)
+        if found is not None:
+            out[name] = found
     return out

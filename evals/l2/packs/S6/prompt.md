@@ -2,7 +2,8 @@
 
 Fit a logistic model. The decision quantity is the dose at which the death
 probability is 1/2. Compute that functional in generated quantities or a
-vmap, not a numpy rewrite of the likelihood after sampling.
+vmap, not a numpy rewrite of the likelihood after sampling. Name the slope
+`beta` and the half-response dose `ld50` in the saved posterior.
 
 Prior predictive checks before sampling. Diagnose R-hat, ESS, and
 divergences. Write report.md with 50% and 94% HDIs, probability language

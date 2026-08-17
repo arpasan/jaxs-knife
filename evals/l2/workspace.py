@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any, Dict, Literal, Mapping
+from typing import Any, Dict, List, Literal, Mapping
 
 from isolation import FORBIDDEN_NAMES, IsolationError, assert_sealed
 
 L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
 PACKS = L2_ROOT / "packs"
-SKILL_SRC = REPO_ROOT / "stan-jax-workflow"
-SKILL_NAME = "stan-jax-workflow"
+SKILL_SRC = REPO_ROOT / "jaxs-knife"
+SKILL_NAME = "jaxs-knife"
 
 Condition = Literal["with", "without"]
 
@@ -125,3 +125,28 @@ def pack_truth(pack_id: str) -> Mapping[str, float] | None:
     if truth is None:
         return None
     return {str(k): float(v) for k, v in dict(truth).items()}
+
+
+def pack_band_a_extra(pack_id: str) -> List[str]:
+    """Optional extra Band A predicate ids from pack ``meta.json``."""
+    meta = load_pack(pack_id)
+    raw = meta.get("band_a_extra") or []
+    return [str(item) for item in raw]
+
+
+def pack_aliases(pack_id: str) -> Dict[str, List[str]]:
+    """Optional Band B name aliases from pack ``meta.json``.
+
+    Parameters
+    ----------
+    pack_id : str
+        Pack id.
+
+    Returns
+    -------
+    Dict[str, List[str]]
+        Canonical name → accepted posterior names.
+    """
+    meta = load_pack(pack_id)
+    raw = meta.get("aliases") or {}
+    return {str(k): [str(item) for item in v] for k, v in dict(raw).items()}

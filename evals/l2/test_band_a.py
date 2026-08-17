@@ -64,6 +64,41 @@ def test_zero_divergences_in_prose_counts() -> None:
     assert by_id["refuse_divergences"] is True
 
 
+def test_prior_sensitivity_refit_is_opt_in(tmp_path: Path) -> None:
+    trial = tmp_path / "sense"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    base = evaluate_band_a(trial)
+    assert base["passed"] is True
+    extra = evaluate_band_a(trial, extra=["prior_sensitivity_refit"])
+    by_id = {p["id"]: p["ok"] for p in extra["predicates"]}
+    assert extra["passed"] is False
+    assert by_id["prior_sensitivity_refit"] is False
+    (trial / "report.md").write_text(
+        (trial / "report.md").read_text(encoding="utf-8")
+        + "\nPrior sensitivity: we refit under a tighter slope prior. "
+        "The decision-relevant conclusion does not move.\n",
+        encoding="utf-8",
+    )
+    ok = evaluate_band_a(trial, extra=["prior_sensitivity_refit"])
+    assert ok["passed"] is True
+
+
 def test_copied_skill_does_not_grade_itself() -> None:
     """On-skill folders copy SKILL.md; those files must not satisfy Band A."""
     import shutil

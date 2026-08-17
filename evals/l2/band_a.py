@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 _PVALUE = re.compile(
     r"\b(p\s*[<>=]\s*0\.\d+|statistically significant|significant effect|reject the null)\b",
@@ -35,6 +35,16 @@ _NUMPY_LIK = re.compile(r"(numpy.*normal\(|np\.random\.normal\(.*mu|rewrite.{0,2
 _CONSTRAINT = re.compile(r"(<lower\s*=|jacobian\s*\+=|jnp\.exp\(|log_abs_det)", re.I)
 _PATHFINDER = re.compile(r"pathfinder", re.I)
 _APPROX = re.compile(r"(approximation|warm[- ]?start|init(?:ialization)?)", re.I)
+_SENSE = re.compile(
+    r"(prior\s+sensitiv|alternative prior|different prior|second prior|two priors)",
+    re.I,
+)
+_REFIT = re.compile(r"\b(refit|re-fit|re-fitted|second fit|both priors)\b", re.I)
+_MOVE = re.compile(
+    r"\b(does not move|did not move|do not move|moves|moved|unchanged|"
+    r"robust|sensitive to the prior|conclusion (holds|changes|changed))\b",
+    re.I,
+)
 
 
 def _under_skill_tree(path: Path, root: Path) -> bool:
@@ -128,13 +138,28 @@ def _divergences_count(root: Path) -> int | None:
     return None
 
 
-def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
+def _prior_sensitivity_refit(text: str) -> Tuple[bool, str]:
+    """Second-prior refit plus a conclusion-movement statement."""
+    ok = bool(_SENSE.search(text) and _REFIT.search(text) and _MOVE.search(text))
+    return ok, (
+        "sensitivity refit + movement"
+        if ok
+        else "missing sensitivity refit or movement statement"
+    )
+
+
+def evaluate_band_a(
+    trial_dir: Path,
+    extra: Optional[Sequence[str]] = None,
+) -> Dict[str, Any]:
     """Score Band A predicates.
 
     Parameters
     ----------
     trial_dir : Path
         Agent output directory. Must not contain this rubric.
+    extra : Sequence[str], optional
+        Pack-specific predicate ids (from ``meta.json`` ``band_a_extra``).
 
     Returns
     -------
@@ -198,6 +223,10 @@ def evaluate_band_a(trial_dir: Path) -> Dict[str, Any]:
         add("pathfinder_labeled", bool(_APPROX.search(corpus)), "pathfinder mentioned")
     else:
         add("pathfinder_labeled", True, "pathfinder not used")
+    extra_ids = [str(x) for x in (extra or ())]
+    if "prior_sensitivity_refit" in extra_ids:
+        ok, ev = _prior_sensitivity_refit(report_text or corpus)
+        add("prior_sensitivity_refit", ok, ev)
 
     n_pass = sum(1 for p in predicates if p["ok"])
     return {

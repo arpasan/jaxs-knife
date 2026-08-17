@@ -27,7 +27,11 @@ GPU density, SVI, a density Stan cannot express, or a new sampler (BlackJAX). Wr
 3. Prior + likelihood on **constrained** values (same families as the Stan model).
    A prior already written on the unconstrained coordinate must **not** also
    add `J` — that double-counts the transform.
-4. `vmap` the observation model for GQ / PPC.
+4. `vmap` the observation model for GQ / PPC, including decision functionals.
+
+Enable `jax.config.update("jax_enable_x64", True)` before constructing the density. JAX defaults to float32; that degrades NUTS adaptation and tail ESS. Record the precision in the report appendix.
+
+Before trusting a hand-written `logdensity_fn`, check finite-difference vs. autodiff gradients and log-density agreement up to a constant against an independent reference (Stan, a tested bijector, or a second implementation). Prefer a tested bijector to a hand-rolled transform.
 
 BlackJAX is a sampler library, not a PPL. You owe it a `logdensity_fn`.
 

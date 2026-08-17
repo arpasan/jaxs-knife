@@ -24,6 +24,10 @@ Optional: `pit_ecdf.png`, `psense.json`, CmdStan `diagnose` text.
 
 No width is magic. Default: **50% typical + 94% range** (HDI). 80% HDI is notebook ink, not the scientific default. Do not mix HDI with ArviZ bare ETI defaults without saying so.
 
+A single 94% HDI is a statement about this posterior, not a calibration claim. Coverage and calibration require repeated datasets (SBC or simulated replications).
+
+Report Monte Carlo standard error next to every printed posterior number. Gate ESS on the interval you print.
+
 ## Language
 
 Probability language. Never “significant,” “rejected,” or p-values. Posterior **mean** of predictive probabilities, never median.
@@ -72,9 +76,9 @@ Probability language. Never “significant,” “rejected,” or p-values. Post
 
 ## Posterior
 
-| Parameter | Mean | SD | 50% HDI | 94% HDI | P(>0) |
-|-----------|------|----|---------|---------|-------|
-| <param> | <> | <> | <> | <> | <> |
+| Parameter | Mean | SD | MCSE | 50% HDI | 94% HDI | P(>0) |
+|-----------|------|----|------|---------|---------|-------|
+| <param> | <> | <> | <> | <> | <> | <> |
 
 **Substantive interpretation.** <domain units; no frequentist language.>
 
@@ -110,5 +114,5 @@ Mandatory. Rank by severity. Assumption, bias direction, what would resolve it.
 
 ## Appendix
 
-<ArviZ summary. Seed. CmdStan / CmdStanPy / nutpie / JAX / BlackJAX / ArviZ versions. Pathfinder labeled if used.>
+<ArviZ summary. Seed. CmdStan / CmdStanPy / nutpie / JAX / BlackJAX / ArviZ versions. JAX float precision (`jax_enable_x64` on or off). Pathfinder labeled if used.>
 ````

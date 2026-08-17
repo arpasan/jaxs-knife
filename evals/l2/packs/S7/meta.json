@@ -6,5 +6,10 @@
     "mu1": -1.1,
     "mu2": 1.4,
     "weight": 0.4
+  },
+  "aliases": {
+    "mu1": ["mu1", "mu_1"],
+    "mu2": ["mu2", "mu_2"],
+    "weight": ["weight", "theta", "pi", "lambda"]
   }
 }

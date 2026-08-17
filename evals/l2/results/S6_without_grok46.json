@@ -1,5 +1,5 @@
 {
-  "pack": "S8",
+  "pack": "S6",
   "condition": "without",
   "model": "cursor-grok-4.6-xhigh-fast",
   "git": "2891021",
@@ -28,28 +28,26 @@
     {
       "rep": 0,
       "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01",
-        "refuse_divergences"
+        "rhat_1_01"
       ],
       "band_a": false,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.129944423274741,
-              0.4309565530849059
+              0.9364736,
+              1.9331543
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.3311355892129396,
-              0.5414282828982476
+              0.10548142,
+              0.66592268
             ],
             "nominal": 0.94,
             "ok": true
@@ -65,27 +63,26 @@
     {
       "rep": 1,
       "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01"
+        "intervals_50_94"
       ],
       "band_a": false,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.13271795213222504,
-              0.4277639389038086
+              0.95239357,
+              1.9308826
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.33061957359313965,
-              0.5526282787322998
+              0.089845238,
+              0.65025475
             ],
             "nominal": 0.94,
             "ok": true
@@ -101,28 +98,27 @@
     {
       "rep": 2,
       "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01",
-        "refuse_divergences"
+        "intervals_50_94",
+        "rhat_1_01"
       ],
       "band_a": false,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.1302218214188445,
-              0.43744560122773457
+              0.92268685,
+              1.9104534
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.3277777531437793,
-              0.5477456562734001
+              0.11140104,
+              0.65798211
             ],
             "nominal": 0.94,
             "ok": true

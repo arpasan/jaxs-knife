@@ -1,23 +1,23 @@
 {
-  "pack": "S8",
-  "condition": "without",
+  "pack": "S6",
+  "condition": "with",
   "model": "cursor-grok-4.6-xhigh-fast",
   "git": "2891021",
   "date": "2026-08-17",
   "n": 3,
   "successes": [
-    false,
-    false,
-    false
+    true,
+    true,
+    true
   ],
-  "pass_at_1": 0.0,
-  "pass_at_3": 0.0,
+  "pass_at_1": 1.0,
+  "pass_at_3": 1.0,
   "band_a_successes": [
-    false,
-    false,
-    false
+    true,
+    true,
+    true
   ],
-  "band_a_pass_at_1": 0.0,
+  "band_a_pass_at_1": 1.0,
   "band_b_successes": [
     true,
     true,
@@ -27,29 +27,25 @@
   "trials": [
     {
       "rep": 0,
-      "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01",
-        "refuse_divergences"
-      ],
-      "band_a": false,
+      "band_a_failed": [],
+      "band_a": true,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.129944423274741,
-              0.4309565530849059
+              0.91982077,
+              1.9334684
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.3311355892129396,
-              0.5414282828982476
+              0.075945775,
+              0.62659918
             ],
             "nominal": 0.94,
             "ok": true
@@ -59,33 +55,30 @@
         "nominal": 0.94,
         "scored": true
       },
-      "passed": false,
+      "passed": true,
       "contam": []
     },
     {
       "rep": 1,
-      "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01"
-      ],
-      "band_a": false,
+      "band_a_failed": [],
+      "band_a": true,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.13271795213222504,
-              0.4277639389038086
+              0.93814161,
+              1.9328306
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.33061957359313965,
-              0.5526282787322998
+              0.097242888,
+              0.65009535
             ],
             "nominal": 0.94,
             "ok": true
@@ -95,34 +88,30 @@
         "nominal": 0.94,
         "scored": true
       },
-      "passed": false,
+      "passed": true,
       "contam": []
     },
     {
       "rep": 2,
-      "band_a_failed": [
-        "prior_predictive",
-        "rhat_1_01",
-        "refuse_divergences"
-      ],
-      "band_a": false,
+      "band_a_failed": [],
+      "band_a": true,
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "beta": {
+            "truth": 1.5,
             "hdi": [
-              0.1302218214188445,
-              0.43744560122773457
+              0.93187377,
+              1.9432912
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "ld50": {
+            "truth": 0.26666666666666666,
             "hdi": [
-              0.3277777531437793,
-              0.5477456562734001
+              0.092857159,
+              0.64896718
             ],
             "nominal": 0.94,
             "ok": true
@@ -132,8 +121,10 @@
         "nominal": 0.94,
         "scored": true
       },
-      "passed": false,
+      "passed": true,
       "contam": []
     }
-  ]
+  ],
+  "delta_vs_without_pass1": 1.0,
+  "delta_vs_without_pass3": 1.0
 }

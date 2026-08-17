@@ -1,0 +1,33 @@
+{
+  "model": "cursor-grok-4.6-xhigh-fast",
+  "date": "2026-08-17",
+  "n": 3,
+  "packs": ["S6", "S7", "S8"],
+  "note": "Follow-up after fixture and Band B alias fixes. S4 void this round. Band B recovered 9/9 in both conditions. Combined lift is Band A. Do not claim better posteriors.",
+  "mean_combined_pass1_off": 0.2222222222222222,
+  "mean_combined_pass1_on": 1.0,
+  "mean_band_a_pass1_off": 0.2222222222222222,
+  "mean_band_a_pass1_on": 1.0,
+  "mean_band_b_pass1_off": 1.0,
+  "mean_band_b_pass1_on": 1.0,
+  "cells": {
+    "S6": {
+      "off_combined": [false, false, false],
+      "on_combined": [true, true, true],
+      "off_band_b": [true, true, true],
+      "on_band_b": [true, true, true]
+    },
+    "S7": {
+      "off_combined": [true, false, true],
+      "on_combined": [true, true, true],
+      "off_band_b": [true, true, true],
+      "on_band_b": [true, true, true]
+    },
+    "S8": {
+      "off_combined": [false, false, false],
+      "on_combined": [true, true, true],
+      "off_band_b": [true, true, true],
+      "on_band_b": [true, true, true]
+    }
+  }
+}

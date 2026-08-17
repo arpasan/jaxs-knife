@@ -1,5 +1,5 @@
 {
-  "pack": "S8",
+  "pack": "S7",
   "condition": "with",
   "model": "cursor-grok-4.6-xhigh-fast",
   "git": "2891021",
@@ -32,20 +32,29 @@
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "mu1": {
+            "truth": -1.1,
             "hdi": [
-              0.13010836666878134,
-              0.4212517371836057
+              -1.1785446,
+              -0.78811523
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "mu2": {
+            "truth": 1.4,
             "hdi": [
-              0.32979377867491044,
-              0.5382027051286198
+              1.2544695,
+              1.4952432
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "weight": {
+            "truth": 0.4,
+            "hdi": [
+              0.28953966,
+              0.48479888
             ],
             "nominal": 0.94,
             "ok": true
@@ -65,20 +74,29 @@
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "mu1": {
+            "truth": -1.1,
             "hdi": [
-              0.12289923834535547,
-              0.42939410083975277
+              -1.1682217,
+              -0.79408755
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "mu2": {
+            "truth": 1.4,
             "hdi": [
-              0.32589002420719576,
-              0.5464474593815006
+              1.2587391,
+              1.4916017
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "weight": {
+            "truth": 0.4,
+            "hdi": [
+              0.28721841,
+              0.47480789
             ],
             "nominal": 0.94,
             "ok": true
@@ -98,20 +116,29 @@
       "band_b": true,
       "band_b_detail": {
         "parameters": {
-          "mu": {
-            "truth": 0.15,
+          "mu1": {
+            "truth": -1.1,
             "hdi": [
-              0.12895742924146483,
-              0.4190538640016462
+              -1.1782108,
+              -0.79163778
             ],
             "nominal": 0.94,
             "ok": true
           },
-          "sigma": {
-            "truth": 0.45,
+          "mu2": {
+            "truth": 1.4,
             "hdi": [
-              0.3347969201107525,
-              0.5454287952300252
+              1.2638017,
+              1.5051237
+            ],
+            "nominal": 0.94,
+            "ok": true
+          },
+          "weight": {
+            "truth": 0.4,
+            "hdi": [
+              0.29159644,
+              0.47435583
             ],
             "nominal": 0.94,
             "ok": true
@@ -125,6 +152,6 @@
       "contam": []
     }
   ],
-  "delta_vs_without_pass1": 1.0,
+  "delta_vs_without_pass1": 0.33333333333333337,
   "delta_vs_without_pass3": 1.0
 }

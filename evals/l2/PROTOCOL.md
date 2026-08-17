@@ -27,9 +27,9 @@ SkillsBench averages five attempts; three is the floor used here.
 Models are compared only to themselves (Grok with skill vs. Grok without).
 A second model family is a second paired delta.
 
-S4 and S8 CSVs were generated so a reference 94% interval under the pack
-priors covers the hidden truth. Published scores use those files. S6 and
-S7 were added after S1–S5.
+S4 and S8 CSVs are generated so a reference 94% interval under the pack
+priors covers the hidden truth. S6 is a binomial dose–response. S7 is a
+two-component mixture.
 
 ## Grading
 
@@ -72,9 +72,8 @@ S4, S6, S7, and S8 recovered hidden truth in every scored attempt (off and
 on). S1 recovered α, β, and σ in both conditions. S2, S3, and S5 have no
 Band B truth.
 
-On S1–S3 and S5, Band A on the `report.md` subset (excluding the copied
-skill tree) was 5/18 off vs. 18/18 on. The same subset without the `1.01`
-predicate was 14/18 vs. 18/18.
+On S1–S3 and S5, Band A restricted to `report.md` was 5/18 off vs. 18/18
+on. The same cut without the `1.01` predicate was 14/18 vs. 18/18.
 
 JSON: `results/S{1–8}_{without,with}_grok46.json`,
 `results/grok46_batch.json`, `results/grok46_followup.json`,
@@ -86,8 +85,8 @@ A second-model arm has not been run.
 
 1. `python evals/l2/run_trial.py --pack S1 --condition without --n 3`
 2. Keep the receipt (visible file list).
-3. Three new agents, blank memory, working directory that `rep-*` only,
-   model fixed.
+3. Three new agents, blank memory, working directory is the `rep-*` folder
+   only, model fixed.
 4. `python evals/l2/run_trial.py --pack S1 --condition without --n 3 --grade`
    (or `grade.py` on each `rep-*`).
 5. Write the score JSON with `evals/l2/emit_results.py` and commit
@@ -112,7 +111,7 @@ vector, pass^1, and pass^3.
 an oracle.”
 
 Cursor-model cells use the Cursor usage pool. Other-model cells use
-Other Models. The per-request Usage events list is the reliable meter.
+Other Models. Record spend from the per-request event list.
 
 ## Hygiene
 

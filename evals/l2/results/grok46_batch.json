@@ -25,7 +25,7 @@
       "S4",
       "S8"
     ],
-    "note": "First-batch aggregate (S1–S5, S8). S4 and S8 were later re-run on regenerated CSVs; those scores are in the S4 and S8 result files and grok46_s4.json / grok46_followup.json."
+    "note": "Historical aggregate for S1–S5 and S8. Current S4 and S8 scores are in the per-pack files, grok46_s4.json, and grok46_followup.json."
   },
   "by_pack": [
     {

@@ -41,7 +41,8 @@ def grade_trial(
     truth : Mapping[str, float] | None
         Known parameter values. Must come from outside ``trial_dir``.
     idata_path : Path | None
-        InferenceData netcdf. Defaults to the first ``*.nc`` under the trial.
+        InferenceData netcdf. Defaults to ``inference_data.nc`` when present,
+        otherwise the first ``*.nc`` under the trial.
     nominal : float
         HDI probability for Band B.
 

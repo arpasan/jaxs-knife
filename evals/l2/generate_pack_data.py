@@ -423,7 +423,7 @@ def main(argv: List[str] | None = None) -> int:
     failed = 0
     for pack_id in args.packs:
         if pack_id not in WRITERS:
-            raise SystemExit(f"refuses to regenerate {pack_id} (would void live scores)")
+            raise SystemExit(f"{pack_id} has no CSV writer")
         ok = CHECKERS[pack_id]()
         if args.check:
             print(f"{pack_id} recoverable={ok}")

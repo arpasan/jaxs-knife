@@ -12,7 +12,7 @@ blank-memory agents. After a batch, a small JSON summary is copied to
 python -m pytest evals/l2
 ```
 
-## Prepare, then grade (the used path)
+## Prepare, then grade
 
 ```bash
 python evals/l2/run_trial.py --pack S1 --condition without --n 3

@@ -1,4 +1,4 @@
-"""Regenerate pack CSVs. Hidden truth must be recoverable from the CSV."""
+"""Regenerate or screen pack CSVs. Hidden truth must be recoverable."""
 
 from __future__ import annotations
 
@@ -33,6 +33,19 @@ S7_MU1 = -1.1
 S7_MU2 = 1.4
 S7_WEIGHT = 0.4
 S7_SIGMA = 0.5
+M1_MU1 = -0.70
+M1_MU2 = 0.90
+M1_WEIGHT = 0.33
+M1_SIGMA = 0.68
+F1_MU = 0.28
+F1_TAU = 1.35
+F1_SIGMA = 1.00
+F1_NJ = 6
+X1_MU = 0.22
+X1_SIGMA = 0.52
+C1_MU = 18.0
+C1_SIGMA = 6.0
+C1_CUTOFF = 20.0
 
 
 def _z_nominal(nominal: float) -> float:
@@ -81,6 +94,26 @@ def _read_xy(path: Path) -> Tuple[Array, Array]:
 def _read_y(path: Path) -> Array:
     rows = list(csv.DictReader(path.open(encoding="utf-8")))
     return np.asarray([float(r["y"]) for r in rows], dtype=float)
+
+
+def _read_group_y(path: Path) -> Tuple[Array, Array]:
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    group = np.asarray([float(r["group"]) for r in rows], dtype=float)
+    y = np.asarray([float(r["y"]) for r in rows], dtype=float)
+    return group, y
+
+
+def _erfc(z: Array) -> Array:
+    """Vector error-function complement. SciPy if present."""
+    try:
+        from scipy.special import erfc
+
+        return np.asarray(erfc(z), dtype=float)
+    except Exception:
+        from math import erfc as math_erfc
+
+        z_arr = np.asarray(z, dtype=float)
+        return np.vectorize(lambda x: float(math_erfc(float(x))), otypes=[float])(z_arr)
 
 
 def _ols_covers(
@@ -392,11 +425,156 @@ def check_s7() -> bool:
     return _s7_covers(_read_y(path))
 
 
+# --------------------------------------------------
+# ---#---#--- Science-suite screens ---#---#---
+# --------------------------------------------------
+
+
+def _m1_covers(y: Array) -> bool:
+    weight, mu1, mu2 = _em_two_normal(y)
+    if not (
+        abs(mu1 - M1_MU1) < 0.40
+        and abs(mu2 - M1_MU2) < 0.40
+        and abs(weight - M1_WEIGHT) < 0.14
+    ):
+        return False
+    rng = np.random.default_rng(0)
+    boots = np.empty((80, 3), dtype=float)
+    for i in range(80):
+        samp = rng.choice(y, size=len(y), replace=True)
+        boots[i] = _em_two_normal(samp)
+    checks = (
+        (boots[:, 0], M1_WEIGHT),
+        (boots[:, 1], M1_MU1),
+        (boots[:, 2], M1_MU2),
+    )
+    for draws, truth in checks:
+        lo, hi = hdi(draws, 0.94)
+        if not (lo <= truth <= hi):
+            return False
+    return True
+
+
+def _f1_covers(group: Array, y: Array) -> bool:
+    groups = np.unique(group.astype(int))
+    resid_parts: List[Array] = []
+    for g in groups:
+        yg = y[group == g]
+        resid_parts.append(yg - float(yg.mean()))
+    resid = np.concatenate(resid_parts)
+    if not _mean_covers(y, F1_MU):
+        return False
+    if not _sigma_chi2_covers(resid, int(len(y) - len(groups)), F1_SIGMA):
+        return False
+    rng = np.random.default_rng(0)
+    boots = np.empty(80, dtype=float)
+    for i in range(80):
+        bars = []
+        for g in groups:
+            yg = y[group == g]
+            bars.append(float(rng.choice(yg, size=len(yg), replace=True).mean()))
+        between = float(np.asarray(bars, dtype=float).var(ddof=1))
+        tau2 = max(between - (F1_SIGMA**2) / F1_NJ, 1e-8)
+        boots[i] = float(np.sqrt(tau2))
+    lo, hi = hdi(boots, 0.94)
+    return bool(lo <= F1_TAU <= hi)
+
+
+def _x1_covers(y: Array) -> bool:
+    return (
+        _mean_covers(y, X1_MU)
+        and _sigma_chi2_covers(y - float(y.mean()), len(y) - 1, X1_SIGMA)
+        and _normal_exp_reference_covers(y, {"mu": X1_MU, "sigma": X1_SIGMA})
+    )
+
+
+def _truncated_normal_grid_covers(
+    y: Array,
+    truth: Mapping[str, float],
+    *,
+    cutoff: float = C1_CUTOFF,
+    nominal: float = 0.94,
+) -> bool:
+    """Grid posterior for left-truncated normal observations."""
+    y = np.asarray(y, dtype=float)
+    n = int(y.size)
+    mus = np.linspace(0.0, 28.0, 201)
+    sigmas = np.linspace(1.5, 16.0, 201)
+    y2 = float(np.dot(y, y))
+    ysum = float(y.sum())
+    logp = np.empty((mus.size, sigmas.size), dtype=float)
+    for i, mu in enumerate(mus):
+        sse = y2 - 2.0 * mu * ysum + n * mu * mu
+        zcut = (cutoff - mu) / sigmas
+        lccdf = np.log(np.clip(0.5 * _erfc(zcut / np.sqrt(2.0)), 1e-300, 1.0))
+        logp[i] = (
+            -n * np.log(sigmas)
+            - 0.5 * sse / (sigmas**2)
+            - n * lccdf
+            - 0.5 * ((mu - 20.0) / 12.0) ** 2
+            - sigmas / 6.0
+        )
+    logp -= float(logp.max())
+    weight = np.exp(logp)
+    weight /= float(weight.sum())
+    rng = np.random.default_rng(0)
+    flat = weight.ravel()
+    idx = rng.choice(flat.size, size=8000, p=flat)
+    mu_s = mus[idx // sigmas.size]
+    sig_s = sigmas[idx % sigmas.size]
+    for name, draws in (("mu", mu_s), ("sigma", sig_s)):
+        lo, hi = hdi(np.asarray(draws, dtype=float), nominal)
+        if not (lo <= float(truth[name]) <= hi):
+            return False
+    return True
+
+
+def _c1_covers(y: Array) -> bool:
+    """Naive normal misses μ; truncated-normal grid covers μ and σ."""
+    if float(y.min()) < C1_CUTOFF:
+        return False
+    if _mean_covers(y, C1_MU):
+        return False
+    return _truncated_normal_grid_covers(y, {"mu": C1_MU, "sigma": C1_SIGMA})
+
+
+def check_m1() -> bool:
+    path = PACKS / "M1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _m1_covers(_read_y(path))
+
+
+def check_f1() -> bool:
+    path = PACKS / "F1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _f1_covers(*_read_group_y(path))
+
+
+def check_x1() -> bool:
+    path = PACKS / "X1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _x1_covers(_read_y(path))
+
+
+def check_c1() -> bool:
+    path = PACKS / "C1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _c1_covers(_read_y(path))
+
+
 CHECKERS: Dict[str, Callable[[], bool]] = {
     "S4": check_s4,
     "S8": check_s8,
     "S6": check_s6,
     "S7": check_s7,
+    "M1": check_m1,
+    "F1": check_f1,
+    "X1": check_x1,
+    "C1": check_c1,
 }
 WRITERS: Dict[str, Callable[[], Path]] = {
     "S4": write_s4,
@@ -422,13 +600,15 @@ def main(argv: List[str] | None = None) -> int:
     args = parser.parse_args(argv)
     failed = 0
     for pack_id in args.packs:
-        if pack_id not in WRITERS:
-            raise SystemExit(f"{pack_id} has no CSV writer")
+        if pack_id not in CHECKERS:
+            raise SystemExit(f"{pack_id} has no CSV screen")
         ok = CHECKERS[pack_id]()
         if args.check:
             print(f"{pack_id} recoverable={ok}")
             failed += int(not ok)
             continue
+        if pack_id not in WRITERS:
+            raise SystemExit(f"{pack_id} has no CSV writer")
         if ok and not args.force:
             print(f"{pack_id} already recoverable; left in place")
             continue

@@ -1,8 +1,17 @@
-"""Fixture screens must cover every scored truth key."""
+"""Fixture screens for generated and coverage-checked pack CSVs."""
 
 from __future__ import annotations
 
-from generate_pack_data import check_s4, check_s6, check_s7, check_s8
+from generate_pack_data import (
+    check_c1,
+    check_f1,
+    check_m1,
+    check_s4,
+    check_s6,
+    check_s7,
+    check_s8,
+    check_x1,
+)
 
 
 def test_s8_csv_recovers_mu_and_sigma() -> None:
@@ -19,3 +28,19 @@ def test_s6_csv_recovers_beta_and_ld50() -> None:
 
 def test_s7_csv_recovers_mixture_keys() -> None:
     assert check_s7() is True
+
+
+def test_m1_csv_recovers_mixture_keys() -> None:
+    assert check_m1() is True
+
+
+def test_f1_csv_recovers_mu_and_tau() -> None:
+    assert check_f1() is True
+
+
+def test_x1_csv_recovers_mu_and_sigma() -> None:
+    assert check_x1() is True
+
+
+def test_c1_naive_misses_truncated_covers() -> None:
+    assert check_c1() is True

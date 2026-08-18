@@ -40,14 +40,24 @@ Do this only when you mean the skill to attach automatically.
 
 ## Evaluation
 
-A sealed skill-on vs. skill-off suite (eight homeworks, three independent
-attempts, same model) was graded on the files the agent wrote and, where
-a hidden data-generating value is recorded, on whether that value sits
-in the 94% interval.
+Isolated skill-on vs. skill-off suites, same model, three independent
+attempts, pass^1 / pass^3. Combined pass is the report and diagnose
+gates (Band A) and, when a pack records a hidden data-generating value,
+whether that value sits in the 94% interval (Band B). Scores:
+`evals/l2/results/on_off.json`.
 
-Attaching the skill raised the combined pass rate from 5/24 to 21/24.
-Parameter recovery was already 15/15 without the skill. The lift is in
-the report and diagnose gates, not in covering the hidden values.
+**Homework suite** (S1–S8): combined pass^1 **5/24 → 21/24**. Band B was
+15/15 under both conditions (five of eight packs record hidden truth).
+
+**Science suite** (M1, F1, X1, C1): combined pass^1 **6/12 → 12/12**.
+Band B was 12/12 under both conditions.
+
+The measured lift is the write-up and diagnose gates, not covering
+hidden values. C1 is left-truncated at a write threshold of 20; a
+plain-normal interval cannot cover the process mean. Skill-off still
+recovered from the threshold stated in the prompt.
+
+The public score file does not name a solver.
 
 ## Tests
 
@@ -56,8 +66,9 @@ python -m pytest
 ```
 
 `evals/l0` checks the diagnostic JSON contract on known-good and known-bad
-traces. `evals/l2` grades sealed workflow fixtures. `evals/smoke` runs live
-CmdStanPy and BlackJAX NUTS on the same mini-normal data.
+traces. `evals/l2` grades isolated workflow fixtures. `evals/smoke` runs
+live CmdStanPy and BlackJAX NUTS on the same mini-normal data.
+`evals/l1` is a manual trigger-description diagnostic, not a gate.
 
 ## Layout
 
@@ -66,6 +77,9 @@ jaxs-knife/            Agent Skill (SKILL.md, references/, scripts/)
 evals/                 Tests and scenario prompts (not part of the skill)
 docs/wordmark-*.svg    Wordmark (light / dark)
 environment.yml        Conda environment
+LICENSE                MIT (name and wordmark reserved)
+TRADEMARKS.md          Name and wordmark
+AGENTS.md              Repo conventions
 ```
 
 ## License

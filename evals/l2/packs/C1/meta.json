@@ -1,0 +1,13 @@
+{
+  "id": "C1",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "mu": 18.0,
+    "sigma": 6.0
+  },
+  "aliases": {
+    "mu": ["mu", "mean"],
+    "sigma": ["sigma", "sig", "scale"]
+  }
+}

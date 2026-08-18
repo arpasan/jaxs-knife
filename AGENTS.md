@@ -5,14 +5,19 @@ ArviZ `InferenceData` is the shared posterior object.
 
 ## Layout
 
+Tracked in a clone:
+
 - `jaxs-knife/` — the skill (`SKILL.md`, `references/`, `scripts/`)
 - `evals/` — tests and scenario prompts; not shipped inside the skill folder
 - `docs/` — wordmark (name and artwork are not MIT; see `TRADEMARKS.md`)
-- `skill-on-off/` — gitignored sealed harvest (keep draws and reports)
-- `.local/` — gitignored internal trees (rehearsals, notes, engine compares)
-- `stan_models/` — gitignored CmdStan compile cache; empty on purpose
 
-Do not start sealed solvers from a chat that has seen `evals/` gold.
+Gitignored local working directories (not in a clone):
+
+- `skill-on-off/` — live skill-on vs. skill-off run trees (keep draws and reports)
+- `.local/` — internal working trees
+- `stan_models/` — CmdStan compile cache
+
+Do not start an isolated solver from a chat that has seen `evals/` gold.
 Do not copy rubric, pack `meta.json`, or eval prompts into `SKILL.md`
 or into an agent working directory.
 

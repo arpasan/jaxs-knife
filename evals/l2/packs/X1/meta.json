@@ -1,0 +1,13 @@
+{
+  "id": "X1",
+  "engine": "jax",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "mu": 0.22,
+    "sigma": 0.52
+  },
+  "aliases": {
+    "mu": ["mu", "mean"],
+    "sigma": ["sigma", "sig", "scale"]
+  }
+}

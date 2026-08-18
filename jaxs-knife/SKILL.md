@@ -58,7 +58,7 @@ python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.39.0')"
 
 If nutpie/BridgeStan fails, fall back to `model.sample()` in CmdStanPy. Do not rewrite the model in NumPyro for fashion.
 
-Pinned: CmdStan 2.39, CmdStanPy 1.3, BridgeStan 2.9 (nutpie may fetch 2.8), nutpie 0.16.11, BlackJAX 1.6.2.
+Minimum versions: CmdStan 2.39, CmdStanPy 1.3, BridgeStan 2.9 (nutpie may fetch 2.8), nutpie 0.16.11, BlackJAX 1.6.2.
 
 ## Stan template
 

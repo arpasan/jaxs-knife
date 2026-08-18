@@ -1,6 +1,6 @@
-# Sealed skill evaluation
+# Isolated skill evaluation
 
-Paired evaluation of the skill: same homework, same model, skill off then
+Paired evaluation of the skill: same pack, same model, skill off then
 skill on, three independent attempts, deterministic grade. The harness
 lives under this directory. Live solver trees are not committed.
 
@@ -8,7 +8,8 @@ lives under this directory. Live solver trees are not committed.
 
 | Item | Choice |
 |---|---|
-| Homeworks | S1–S8 |
+| Homework packs | S1–S8 |
+| Science packs | M1, F1, X1, C1 |
 | Conditions | skill off, then skill on |
 | Attempts per cell | *n* = 3 (independent agents, no shared memory) |
 | Model | record the model id; compare a model only to itself |
@@ -56,11 +57,12 @@ R-hat predicate.
    folder only, model fixed.
 4. `python evals/l2/run_trial.py --pack S1 --condition without --n 3 --grade`
    (or `grade.py` on each `rep-*`).
-5. Write the score JSON with `evals/l2/emit_results.py` into a gitignored
-   run directory. Do not commit per-cell JSON.
-6. Keep the harvest under repo-root `skill-on-off/` (gitignored), including
-   draws. `--wipe` is only for shrinking disk after an explicit decision;
-   it is not the default after a batch.
+5. Write the per-cell score JSON with `evals/l2/emit_results.py` into a
+   gitignored run directory. Do not commit per-cell JSON.
+6. Keep live run trees under repo-root `skill-on-off/` (gitignored),
+   including draws. `--wipe` is only for shrinking disk after an explicit
+   decision; it is not the default after a batch.
+7. Rebuild the public aggregate with `evals/l2/summarize_on_off.py`.
 
 Do not write `eval_metadata.json` beside outputs. Do not run solvers in a
 session that has seen this protocol or the gold. Do not dump library
@@ -69,9 +71,10 @@ out hung inspect commands.
 
 ## Reproducibility
 
-**Fixed:** pack CSVs, prompts, grader, rubric, git commit of this repo.
-Score JSON records model id, condition, pack, commit SHA, date, success
-vector, pass^1, and pass^3.
+**Fixed:** pack CSVs, prompts, grader, rubric, and the skill revision
+used for the run (`eval_commit` in the public file). Per-cell JSON
+records model id, condition, pack, commit SHA, date, success vector,
+pass^1, and pass^3. The public file omits solver ids.
 
 **Not bit-identical:** agent transcripts and MCMC draws. That is why
 *n* = 3 and why Band B is “truth inside the HDI,” not “same posterior as
@@ -79,6 +82,6 @@ an oracle.”
 
 ## Hygiene
 
-- Agent trees only under repo-root `skill-on-off/` (gitignored).
+- Agent trees only under gitignored run directories.
 - Do not commit per-cell JSON, draws, or machine-local receipts.
 - No leftover skill copies or Stan binaries in the working tree.

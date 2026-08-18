@@ -1,4 +1,4 @@
-# Sealed workflow grades
+# Isolated workflow grades
 
 Pytest checks the grader. The same scripts prepare isolated folders and
 score them. Solvers are separate agents; this tree does not launch them.
@@ -17,7 +17,7 @@ python evals/l2/run_trial.py --wipe --run-root <run-root>
 ```
 
 Default `--run-root` is repo-root `skill-on-off/` (gitignored). Keep
-harvest trees, including draws, unless disk must be reclaimed.
+those run trees, including draws, unless disk must be reclaimed.
 `--wipe` strips `.nc` / images / binaries and is optional.
 
 Design notes: [PROTOCOL.md](PROTOCOL.md).
@@ -32,5 +32,8 @@ Writes default to `evals/compare/` (gitignored).
 
 ## Packs
 
-`packs/S1` … `S8` each ship `prompt.md` and `data.csv`. Prompts do not name
-this skill. `meta.json` is not copied into the workspace.
+`packs/S1` … `S8` are the homework suite. `M1`, `F1`, `X1`, and `C1` are
+the science suite. Each pack ships `prompt.md` and `data.csv`. Prompts
+do not name this skill. `meta.json` is not copied into the workspace.
+
+Public aggregate scores: [results/on_off.json](results/on_off.json).

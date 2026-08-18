@@ -35,6 +35,13 @@ evals/smoke/artifacts/
 
 evals/l2/local_runs/
 evals/compare/
-skill-on-off/
+
+# Local working trees. Numbered test trees live under .local/ as
+# i-skill-on-off, ii-engine-compare, iii-science-on-off, iv-rehearsals.
 .local/
+
+# Former locations of the same trees. Kept so a stale script that still
+# writes to the old path cannot commit run output.
+skill-on-off/
+rehearsals/
 jaxs-knife-rehearsals/

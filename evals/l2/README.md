@@ -16,7 +16,7 @@ python evals/l2/grade.py --trial /path/to/rep-0
 python evals/l2/run_trial.py --wipe --run-root <run-root>
 ```
 
-Default `--run-root` is repo-root `skill-on-off/` (gitignored). Keep
+Default `--run-root` is `.local/i-skill-on-off/` (gitignored). Keep
 those run trees, including draws, unless disk must be reclaimed.
 `--wipe` strips `.nc` / images / binaries and is optional.
 

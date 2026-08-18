@@ -14,7 +14,7 @@ from passk import pass_at_k
 
 L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
-RESULTS = REPO_ROOT / "skill-on-off"
+RESULTS = REPO_ROOT / ".local" / "i-skill-on-off"
 DEFAULT_MODEL = "unspecified"
 
 

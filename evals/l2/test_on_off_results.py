@@ -9,6 +9,7 @@ import pytest
 
 from summarize_on_off import (
     ADDITIONAL_IDS,
+    DEFAULT_CELL_DIR,
     PUBLIC_PATH,
     STANDARD_IDS,
     per_cell_trees_available,
@@ -32,7 +33,7 @@ def test_committed_on_off_schema() -> None:
 
 def test_rebuild_matches_committed_when_local_cells_exist() -> None:
     repo = Path(__file__).resolve().parents[2]
-    standard_dir = repo / "skill-on-off"
+    standard_dir = DEFAULT_CELL_DIR
     additional_dir = None
     local_root = repo / ".local"
     if local_root.is_dir():

@@ -13,7 +13,7 @@ from passk import pass_at_k
 L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
 PUBLIC_PATH = L2_ROOT / "results" / "on_off.json"
-DEFAULT_CELL_DIR = REPO_ROOT / "skill-on-off"
+DEFAULT_CELL_DIR = REPO_ROOT / ".local" / "i-skill-on-off"
 STANDARD_IDS: Tuple[str, ...] = ("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8")
 ADDITIONAL_IDS: Tuple[str, ...] = ("M1", "F1", "X1", "C1")
 HOMEWORK_IDS = STANDARD_IDS

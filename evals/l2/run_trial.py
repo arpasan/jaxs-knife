@@ -25,7 +25,7 @@ from workspace import (
 
 L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
-DEFAULT_RUNS = REPO_ROOT / "skill-on-off"
+DEFAULT_RUNS = REPO_ROOT / ".local" / "i-skill-on-off"
 KEEP_AFTER_WIPE = frozenset({"batch.json", "receipt.json", "grade.json"})
 KEEP_TEXT_SUFFIXES = frozenset({".md", ".py", ".stan", ".json", ".txt"})
 DROP_ON_WIPE = frozenset({".nc", ".png", ".pdf", ".npy", ".so", ".o", ".hpp", ".d"})

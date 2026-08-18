@@ -13,9 +13,17 @@ Tracked in a clone:
 
 Gitignored local working directories (not in a clone):
 
-- `skill-on-off/` — live skill-on vs. skill-off run trees (keep draws and reports)
-- `.local/` — internal working trees
+- `.local/` — internal working trees, including the numbered test trees
 - `stan_models/` — CmdStan compile cache
+
+Numbered test trees live directly under `.local/`. A roman-numeral
+prefix marks a test tree; anything in `.local/` without one is shared
+tooling or research material, not evidence.
+
+- `.local/i-skill-on-off/` — reporting suite, skill off vs. on
+- `.local/ii-engine-compare/` — unpublished engine compare
+- `.local/iii-science-on-off/` — science suite, skill off vs. on
+- `.local/iv-rehearsals/` — author demonstrations, not an evaluation
 
 Each local working directory carries its own `README.md` stating what it
 holds, what was held fixed, how to read it, and what must not be

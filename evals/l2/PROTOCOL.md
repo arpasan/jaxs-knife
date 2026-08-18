@@ -106,6 +106,16 @@ vector, pass^1, and pass^3.
 *n* = 3 and why coverage is “value inside the reported interval,” not
 “same posterior as an oracle.”
 
+## What the off condition is
+
+The attempt folder for the off condition contains `prompt.md` and
+`data.csv` only. That is not a blank-memory profile. Solvers launched
+as agents on this host still inherit the account's standing user rules,
+this repository's `AGENTS.md`, and the host skill catalog. The
+published contrast is the skill *tree* present versus absent, against
+that baseline. A receipt of filenames in the attempt folder does not
+record those channels.
+
 ## Hygiene
 
 - Agent trees only under gitignored run directories.

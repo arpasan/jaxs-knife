@@ -89,3 +89,7 @@ produced; it does not guarantee one.
   threshold and reporting an interval; it cannot judge whether the
   prose is insightful.
 - Incomplete attempts are graded as they stand and counted as failures.
+- The off condition is the skill tree absent from the attempt folder,
+  not a blank profile. Solvers still inherit the host account's
+  standing user rules and skill catalog. See
+  [`PROTOCOL.md`](../PROTOCOL.md).

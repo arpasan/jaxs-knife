@@ -1,8 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.svg">
-    <img src="docs/wordmark-light.svg" width="360" alt="jaxs-knife">
-  </picture>
+  <img src="docs/wordmark-light.svg#gh-light-mode-only" width="360" alt="jaxs-knife">
+  <img src="docs/wordmark-dark.svg#gh-dark-mode-only" width="360" alt="jaxs-knife">
 </p>
 
 <p align="center"><em>Stan when you can. JAX when you must.</em></p>

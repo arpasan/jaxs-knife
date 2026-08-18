@@ -16,11 +16,12 @@ venv/
 .env
 .env.*
 
-# Stan / CmdStan compile artifacts
+# Stan / CmdStan compile artifacts (runtime cache; leave empty in git)
 .cmdstan/
 stan_models/
 cmdstan-*/
 bridgestan-*/
+.jax_cache/
 *.hpp
 *.o
 *.so
@@ -36,3 +37,4 @@ evals/l2/local_runs/
 evals/compare/
 skill-on-off/
 .local/
+jaxs-knife-rehearsals/

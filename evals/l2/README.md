@@ -16,8 +16,9 @@ python evals/l2/grade.py --trial /path/to/rep-0
 python evals/l2/run_trial.py --wipe --run-root <run-root>
 ```
 
-Default `--run-root` is repo-root `skill-on-off/` (gitignored). Wipe
-deletes `rep-*` trees and keeps receipts and `batch.json`.
+Default `--run-root` is repo-root `skill-on-off/` (gitignored). Keep
+harvest trees, including draws, unless disk must be reclaimed.
+`--wipe` strips `.nc` / images / binaries and is optional.
 
 Design notes: [PROTOCOL.md](PROTOCOL.md).
 

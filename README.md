@@ -38,6 +38,17 @@ Copy or symlink `jaxs-knife/` into the agent's skills directory
 (for Cursor: `.cursor/skills/` in the project, or `~/.cursor/skills/`).
 Do this only when you mean the skill to attach automatically.
 
+## Evaluation
+
+A sealed skill-on vs. skill-off suite (eight homeworks, three independent
+attempts, same model) was graded on the files the agent wrote and, where
+a hidden data-generating value is recorded, on whether that value sits
+in the 94% interval.
+
+Attaching the skill raised the combined pass rate from 5/24 to 21/24.
+Parameter recovery was already 15/15 without the skill. The lift is in
+the report and diagnose gates, not in covering the hidden values.
+
 ## Tests
 
 ```bash
@@ -59,4 +70,4 @@ environment.yml        Conda environment
 
 ## License
 
-MIT
+MIT. The name and wordmark are not licensed; see [TRADEMARKS.md](TRADEMARKS.md).

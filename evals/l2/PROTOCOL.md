@@ -58,9 +58,9 @@ R-hat predicate.
    (or `grade.py` on each `rep-*`).
 5. Write the score JSON with `evals/l2/emit_results.py` into a gitignored
    run directory. Do not commit per-cell JSON.
-6. After review, `python evals/l2/run_trial.py --wipe --run-root <run-root>`
-   (keeps `report.md` / `.py` / `.stan` / `.json`; drops `.nc`, images,
-   binaries).
+6. Keep the harvest under repo-root `skill-on-off/` (gitignored), including
+   draws. `--wipe` is only for shrinking disk after an explicit decision;
+   it is not the default after a batch.
 
 Do not write `eval_metadata.json` beside outputs. Do not run solvers in a
 session that has seen this protocol or the gold. Do not dump library

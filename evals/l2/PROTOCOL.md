@@ -8,8 +8,8 @@ lives under this directory. Live solver trees are not committed.
 
 | Item | Choice |
 |---|---|
-| Standard tasks | S1–S8 under `packs/` (linear regression through JAX log-density) |
-| Additional tasks | M1, F1, X1, C1 (mixture, hierarchical, JAX location-scale, omitted low values) |
+| Reporting tasks | S1–S8 under `packs/` (regression through a JAX log-density) |
+| Science tasks | M1, F1, X1, C1 (mixture, hierarchical, JAX location-scale, recordings that drop low values) |
 | Conditions | skill off, then skill on |
 | Attempts per cell | *n* = 3 (independent agents, no shared memory) |
 | Model | one model, held fixed; recorded only in local per-cell JSON |

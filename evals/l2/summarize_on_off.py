@@ -33,8 +33,8 @@ TASK_LABELS: Dict[str, str] = {
     "C1": "recordings that omit values below a threshold",
 }
 SUITE_LABELS: Dict[str, str] = {
-    "standard": "Eight standard tasks",
-    "additional": "Four additional tasks",
+    "standard": "Eight reporting tasks",
+    "additional": "Four science tasks",
 }
 COVERAGE_NOTE = (
     "scored only on tasks that record generating values; each such "
@@ -220,9 +220,9 @@ def build_public_on_off(
     Parameters
     ----------
     standard_dir : Path
-        Per-cell JSON for the eight standard tasks.
+        Per-cell JSON for the eight reporting tasks.
     additional_dir : Path
-        Per-cell JSON for the four additional tasks.
+        Per-cell JSON for the four science tasks.
     logger : logging.Logger, optional
         Injected logger.
 

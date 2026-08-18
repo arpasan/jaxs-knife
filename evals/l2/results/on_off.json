@@ -4,7 +4,7 @@
   "attempts_per_cell": 3,
   "pass_definition": "an attempt passes when every workflow-checklist predicate holds and, when the task records generating values, the reported 94% interval contains each of them",
   "standard": {
-    "label": "Eight standard tasks",
+    "label": "Eight reporting tasks",
     "task_ids": [
       "S1",
       "S2",
@@ -124,7 +124,7 @@
     ]
   },
   "additional": {
-    "label": "Four additional tasks",
+    "label": "Four science tasks",
     "task_ids": [
       "M1",
       "F1",

@@ -37,4 +37,4 @@ by a short id (S1–S8, M1, F1, X1, C1) and contains `prompt.md` and
 `data.csv`. Generating values, when recorded, live in `meta.json` and
 are not copied into an agent workspace.
 `evals/scenarios/` holds illustrative prompt stubs for a subset of the
-standard tasks. Neither is copied into the skill.
+reporting tasks. Neither is copied into the skill.

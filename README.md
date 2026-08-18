@@ -58,22 +58,28 @@ values used to generate its data, each value lies in the reported 94%
 interval. Those values are withheld from the agent's directory; they
 remain in this repository so the grade is checkable.
 
+Two suites share that grader. The first is eight reporting exercises
+(regression through a JAX log-density). The second is four science
+problems — a mixture, a hierarchical model, a JAX location-scale fit,
+and a recording process that drops low values — scored with the same
+write-up checklist.
+
 ```text
-+-----------------------+--------------------------+-----------+----------+
-| Suite                 | Measure                  | skill off | skill on |
-+-----------------------+--------------------------+-----------+----------+
-| Eight standard tasks  | attempts passing         |    5 / 24 |  21 / 24 |
-|                       | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
-|                       | generating-value covered |   15 / 15 |  15 / 15 |
-+-----------------------+--------------------------+-----------+----------+
-| Four additional tasks | attempts passing         |    6 / 12 |  12 / 12 |
-|                       | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
-|                       | generating-value covered |   12 / 12 |  12 / 12 |
-+-----------------------+--------------------------+-----------+----------+
++------------------------+--------------------------+-----------+----------+
+| Suite                  | Measure                  | skill off | skill on |
++------------------------+--------------------------+-----------+----------+
+| Eight reporting tasks  | attempts passing         |    5 / 24 |  21 / 24 |
+|                        | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
+|                        | generating-value covered |   15 / 15 |  15 / 15 |
++------------------------+--------------------------+-----------+----------+
+| Four science tasks     | attempts passing         |    6 / 12 |  12 / 12 |
+|                        | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
+|                        | generating-value covered |   12 / 12 |  12 / 12 |
++------------------------+--------------------------+-----------+----------+
 ```
 
 Coverage is scored only on tasks that record generating values (five of
-the eight standard tasks, and all four additional ones). Each such task
+the eight reporting tasks, and all four science tasks). Each such task
 was accepted only if a reference interval under the task's own priors
 contained the value, so that row is a floor check: it was already
 complete without the skill, and attaching the skill did not disturb it.
@@ -84,7 +90,7 @@ problems under both conditions; what it omitted when unprompted is the
 prior predictive check, the convergence statement, the criticism step,
 and the interval discipline that let a reader audit the result. That is
 what the skill supplies. It is not a claim of a better posterior. Two
-of the eight standard tasks still have failing attempts with the skill
+of the eight reporting tasks still have failing attempts with the skill
 attached; see the per-task table in the results note.
 
 Design and grading predicates: [`evals/l2/PROTOCOL.md`](evals/l2/PROTOCOL.md).

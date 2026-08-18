@@ -25,18 +25,22 @@ Incomplete attempts are graded as they stand.
 
 ## Results
 
+The first suite is eight reporting exercises. The second is four
+science problems (mixture, hierarchical, JAX location-scale, recordings
+that drop low values), scored with the same write-up checklist.
+
 ```text
-+-----------------------+--------------------------+-----------+----------+
-| Suite                 | Measure                  | skill off | skill on |
-+-----------------------+--------------------------+-----------+----------+
-| Eight standard tasks  | attempts passing         |    5 / 24 |  21 / 24 |
-|                       | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
-|                       | generating-value covered |   15 / 15 |  15 / 15 |
-+-----------------------+--------------------------+-----------+----------+
-| Four additional tasks | attempts passing         |    6 / 12 |  12 / 12 |
-|                       | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
-|                       | generating-value covered |   12 / 12 |  12 / 12 |
-+-----------------------+--------------------------+-----------+----------+
++------------------------+--------------------------+-----------+----------+
+| Suite                  | Measure                  | skill off | skill on |
++------------------------+--------------------------+-----------+----------+
+| Eight reporting tasks  | attempts passing         |    5 / 24 |  21 / 24 |
+|                        | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
+|                        | generating-value covered |   15 / 15 |  15 / 15 |
++------------------------+--------------------------+-----------+----------+
+| Four science tasks     | attempts passing         |    6 / 12 |  12 / 12 |
+|                        | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
+|                        | generating-value covered |   12 / 12 |  12 / 12 |
++------------------------+--------------------------+-----------+----------+
 ```
 
 Attempts passing, per task, out of three:

@@ -1,7 +1,6 @@
-"""Development aid: keyword overlap vs SKILL.md description.
+"""Keyword overlap of example queries vs. the SKILL.md description.
 
-Not a pass/fail gate. Prints precision, recall, and a Stan-vs-JAX confusion
-table so we can see a split pattern if one appears.
+Not a pass/fail gate. Prints precision, recall, and a Stan vs. JAX table.
 """
 
 from __future__ import annotations
@@ -32,7 +31,7 @@ def _should_fire(description: str, query: str) -> bool:
     """Crude overlap: fire if the query shares a distinctive token with the description.
 
     Distinctive = tokens in the description that are not English stop-ish words.
-    This is a development heuristic, not the real L1 (which is agent-side).
+    This is a development heuristic, not a gate.
     """
     stop = {
         "a", "an", "the", "and", "or", "for", "of", "to", "in", "on", "with",

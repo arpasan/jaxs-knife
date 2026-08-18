@@ -45,9 +45,7 @@ python -m pytest
 ```
 
 `evals/l0` checks the diagnostic JSON contract on known-good and known-bad
-traces. `evals/l2` grades sealed workflow fixtures; the live skill-on vs
-skill-off batch (n = 3, pass^1 and pass^3) is described in
-[`evals/l2/PROTOCOL.md`](evals/l2/PROTOCOL.md). `evals/smoke` runs live
+traces. `evals/l2` grades sealed workflow fixtures. `evals/smoke` runs live
 CmdStanPy and BlackJAX NUTS on the same mini-normal data.
 
 ## Layout

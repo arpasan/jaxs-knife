@@ -14,15 +14,8 @@ ArviZ `InferenceData` is the shared posterior object.
 - Public Python functions: full type hints; optional injected `logger`;
   no prints in library code.
 - Do not put eval prompts or gold answers in `SKILL.md`.
-- L2 gold, `rubric.json`, and pack `meta.json` stay under `evals/`. Never
-  copy them into an agent cwd. Do not write `eval_metadata.json` beside
-  agent outputs.
-- Live L2: same model, skill on vs off, n = 3, report pass^1 and pass^3.
-  Primary solver is Cursor Grok 4.6; an optional second stack is Opus 4.7
-  or Fable (paired on/off, not vs Grok). See `evals/l2/PROTOCOL.md`.
-- After a live batch, commit only `evals/l2/results/*.json`. Wipe heavy
-  artifacts (`*.nc`, images, binaries); keep `report.md` and small text
-  until the learning review is done. Do not leave extra Cursor projects.
+- Rubric and pack metadata stay under `evals/`. Never copy them into an
+  agent working directory.
 - Do not treat BridgeStan host-callbacks as a JIT/GPU Stan path.
 - Do not transpile Stan to XLA.
 

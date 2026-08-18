@@ -7,7 +7,7 @@ import pytest
 
 az = pytest.importorskip("arviz")
 
-from check_diagnostics import check_diagnostics
+from check_diagnostics import check_diagnostics, suggest_next_steps
 from diagnose_model import generate_report
 from to_inference_data import from_blackjax
 
@@ -62,6 +62,7 @@ def _pathological_idata(seed: int = 1) -> object:
 def test_healthy_convergence_ok() -> None:
     report = generate_report(_healthy_idata())
     assert report["convergence"]["all_ok"] is True
+    assert report["convergence"]["divergences"]["recorded"] is True
     assert report["convergence"]["divergences"]["count"] == 0
     assert report["posterior_predictive"]["available"] is True
     rated = check_diagnostics(diagnostics=report)
@@ -98,3 +99,44 @@ def test_convergence_fallback_does_not_raise(monkeypatch: pytest.MonkeyPatch) ->
     report = generate_report(_healthy_idata())
     assert report["convergence"]["all_ok"] is False
     assert "error" in report["convergence"]
+
+
+def test_missing_sample_stats_is_not_a_pass() -> None:
+    rng = np.random.default_rng(2)
+    n_chains, n_draws = 4, 250
+    idata = from_blackjax(
+        {
+            "mu": rng.normal(0.0, 0.15, size=(n_chains, n_draws)),
+            "sigma": np.exp(rng.normal(0.0, 0.05, size=(n_chains, n_draws))),
+        }
+    )
+    report = generate_report(idata)
+    divergences = report["convergence"]["divergences"]
+    assert report["convergence"]["all_ok"] is False
+    assert divergences["recorded"] is False
+    assert divergences["ok"] is False
+    rated = check_diagnostics(diagnostics=report)
+    assert rated["convergence"]["rating"] == "poor"
+    assert "divergences=unknown" in rated["convergence"]["problematic_params"]
+    steps = suggest_next_steps(rated)
+    assert any("missing" in s.lower() and "diverging" in s.lower() for s in steps)
+
+
+def test_is_divergent_alias_is_recorded() -> None:
+    rng = np.random.default_rng(3)
+    n_chains, n_draws = 4, 250
+    flags = np.zeros((n_chains, n_draws), dtype=bool)
+    flags[:, :5] = True
+    idata = from_blackjax(
+        {
+            "mu": rng.normal(0.0, 0.15, size=(n_chains, n_draws)),
+            "sigma": np.exp(rng.normal(0.0, 0.05, size=(n_chains, n_draws))),
+        },
+        sample_stats={"is_divergent": flags},
+    )
+    assert "diverging" in idata.sample_stats.data_vars
+    report = generate_report(idata)
+    divergences = report["convergence"]["divergences"]
+    assert divergences["recorded"] is True
+    assert divergences["count"] == int(flags.sum())
+    assert report["convergence"]["all_ok"] is False

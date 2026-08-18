@@ -116,7 +116,8 @@ def from_blackjax(
     posterior : Mapping[str, NDArray]
         Posterior draws.
     sample_stats : Mapping[str, NDArray], optional
-        Include ``diverging`` when the sampler exposes it.
+        Sampler diagnostics. ``is_divergent`` / ``divergent`` are stored as
+        ``diverging``. Omit this group and diagnose will refuse, not pass.
     observed_data : Mapping[str, NDArray], optional
         Observed responses for PPC / calibration.
     posterior_predictive : Mapping[str, NDArray], optional
@@ -139,7 +140,13 @@ def from_blackjax(
         logger.info("Building InferenceData from BlackJAX draw dicts")
     payload: Dict[str, Mapping[str, NDArray[Any]]] = {"posterior": dict(posterior)}
     if sample_stats is not None:
-        payload["sample_stats"] = dict(sample_stats)
+        stats = dict(sample_stats)
+        if "diverging" not in stats:
+            for alias in ("is_divergent", "divergent"):
+                if alias in stats:
+                    stats["diverging"] = stats[alias]
+                    break
+        payload["sample_stats"] = stats
     if observed_data is not None:
         payload["observed_data"] = dict(observed_data)
     if posterior_predictive is not None:

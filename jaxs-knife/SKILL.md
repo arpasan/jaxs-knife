@@ -13,7 +13,7 @@ description: >
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # jaxs-knife
@@ -26,7 +26,7 @@ Every analysis follows this sequence. Do not skip criticism.
 2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior.
 3. **Implement** — Pick an engine ([references/engines.md](references/engines.md)), then write the model.
 4. **Prior predictive** — Before MCMC. If draws are nonsense, fix priors first.
-5. **Fake-data recovery** — Simulate from *this* model at known parameter values, fit, and confirm the named estimand is recovered. Only then fit the real data.
+5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
 8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too.
@@ -129,25 +129,20 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 ## Critical rules
 
 - Prior predictive **before** sampling. Prefer a `prior_only` data flag in the same program over a second, drifted copy.
-- Fake-data recovery **before** the real fit: known parameters in, named estimand recovered, then the data.
-- Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains. Gate ESS on the interval you print, not only a global check.
-- Report Monte Carlo standard error next to every printed posterior number.
-- Divergences: refuse to interpret. Reparameterize, then raise `adapt_delta` / `target_accept`.
+- Fake-data recovery **before** the real fit: known parameters in, named estimand in the reported interval, recovery fit clears the same gates. One run is not coverage.
+- Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains. Gate ESS on the interval you print.
+- Divergences: refuse to interpret. A missing `sample_stats.diverging` flag is unknown, not zero. Reparameterize, then raise `adapt_delta` / `target_accept`.
 - E-BFMI and treedepth are first-class (`cmdstan diagnose` when the fit is CmdStan).
 - Constrained Stan declarations auto-adjust the Jacobian. Sampling a **transform** of a parameter needs `jacobian +=`.
 - Write JAX like Stan: constrain, Jacobian, log density, `vmap` GQ. Enable `jax_enable_x64` before constructing the density.
-- Before trusting a hand-written log density: finite-difference vs. autodiff gradient agreement, and log-density agreement up to an additive constant against an independent reference (Stan, a tested bijector, or a second implementation). Prefer a tested bijector to a hand-rolled transform.
 - Pathfinder / Laplace / ADVI are approximations or NUTS inits unless labeled otherwise.
-- PPC *p*-values are not hypothesis tests. PSIS-LOO over WAIC. Pareto-k < 0.5 trust; 0.5–0.7 investigate; ≥ 0.7 K-fold or moment matching.
+- PPC *p*-values are not hypothesis tests. PSIS-LOO over WAIC. Pareto-k < 0.5 trust; 0.5–0.7 investigate; ≥ 0.7 K-fold (moment matching needs a callable density, not a CmdStan CSV).
 - ΔELPD < 2 × dSE → indistinguishable; prefer the simpler model. Stacking when there is no winner. LOO is not NHST.
 - Power-scaling CJS > 0.05 is a flag to document, not a command to loosen priors.
-- Intervals: report **50% typical + 94% range**. No width is magic. 80% HDI is notebook ink, not the scientific default. HDI, not bare ETI.
-- A 94% HDI from one dataset is a statement about this posterior, not a calibration claim. Coverage and calibration require repeated datasets (SBC or simulated replications).
-- Decision functionals (contrasts, ratios, inverse-link doses) belong in generated quantities or `vmap`, not a numpy rewrite after sampling.
 - Posterior **mean** of predictive probabilities, never median.
 - Probability language. Never “significant” / p-values.
 - Save draws before post-processing (`inference_data.nc`).
-- Identifiability: pair plots near ±1 → merge components. Discrete latents: marginalize.
+- Discrete latents and mixtures: [references/mixtures.md](references/mixtures.md). Label switching is not more draws.
 - Use `scripts/diagnose_model.py` → `calibration_check.py` → `check_diagnostics.py`. Paste ratings into `report.md`.
 
 ## Utility scripts
@@ -168,17 +163,21 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 - **NumPyro 8-schools HalfCauchy** → override; it is a known funnel prior.
 - **BridgeStan + BlackJAX callbacks** → Stan grads are C++, not `jit`/`gpu` of the Stan density.
 - **`np.median` on predictive probabilities** → not the posterior predictive.
+- **Off-by-one group index** → Stan is 1-based; reuse one level map for any prediction data.
 
 ## When things go wrong
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| Init fail / NaN logp | Data, bounds, or precision | Fix decls / dtypes / init; `jax_enable_x64`. Not `adapt_delta` |
+| Missing `diverging` | JAX stats not stored | Store `is_divergent` as `diverging`. Missing ≠ 0 |
 | Divergences | Funnel / missing Jacobian / bad scales | Non-centered; constrained decl; then `adapt_delta` 0.95–0.99 |
 | R-hat > 1.01 | Poor mixing / multimodality | More draws; Pathfinder init; pair plots |
+| Label-switching R-hat | Unordered mixture | `ordered[K]` / `log_mix`; [mixtures.md](references/mixtures.md) |
 | Low ESS | Autocorrelation | Reparameterize; QR if `X` is collinear |
 | Treedepth saturation | Difficult geometry | Reparameterize before raising `max_treedepth` |
 | Prior pred. nonsense | Bad priors | Tighten; never `normal(0, 1000)` |
-| PPC misses data | Misspecification | Heavier tails, overdispersion, hierarchy |
+| PPC misses data | Misspecification | One repair from the observed misfit; then refit |
 | Pareto-k ≥ 0.7 | Influential points | Inspect; Student-t; K-fold |
 | nutpie compile fail | Toolchain / BridgeStan | CmdStanPy `sample()` fallback |
 

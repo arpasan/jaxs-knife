@@ -1,4 +1,4 @@
-"""Committed results JSON is produced by emit_results, not by hand."""
+"""Results JSON is produced by emit_results, not by hand."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ def test_emit_cell_passk_and_failed_ids() -> None:
     payload = emit_cell(
         pack="S6",
         condition="without",
-        model="cursor-grok-4.6-xhigh-fast",
+        model="test-model",
         git="deadbeef",
         grade=grade,
     )

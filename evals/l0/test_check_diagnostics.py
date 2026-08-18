@@ -92,6 +92,28 @@ def test_same_json_same_ratings() -> None:
     assert a["loo"]["rating"] == b["loo"]["rating"]
 
 
+def test_unknown_divergences_rate_poor() -> None:
+    diag = _healthy_diagnostics()
+    diag["convergence"] = {
+        "all_ok": False,
+        "rhat": {"ok": True, "max": 1.001, "problematic_params": []},
+        "ess_bulk": {"ok": True, "problematic_params": []},
+        "ess_tail": {"ok": True, "problematic_params": []},
+        "divergences": {
+            "recorded": False,
+            "count": None,
+            "pct": None,
+            "ok": False,
+        },
+    }
+    report = check_diagnostics(diagnostics=diag)
+    assert report["convergence"]["rating"] == "poor"
+    assert "divergences=unknown" in report["convergence"]["problematic_params"]
+    steps = suggest_next_steps(report)
+    assert any("missing" in s.lower() for s in steps)
+    assert not any("reparameterize first" in s.lower() for s in steps)
+
+
 def test_calibration_overconfident() -> None:
     cal = {
         "assessment": {

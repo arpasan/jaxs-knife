@@ -50,18 +50,25 @@ def _rate_convergence(conv: Dict[str, Any]) -> Tuple[str, List[str]]:
     if not ess_t.get("ok", True):
         issues.extend(ess_t.get("problematic_params", []))
     if not div.get("ok", True):
-        issues.append(f"divergences={div.get('count', 0)}")
+        if div.get("recorded") is False:
+            issues.append("divergences=unknown")
+        else:
+            issues.append(f"divergences={div.get('count', 0)}")
     if not bfmi.get("ok", True):
         issues.append("low E-BFMI")
     if not td.get("ok", True):
         issues.append("max treedepth saturation")
 
     issues = list(dict.fromkeys(issues))
-    n_div = div.get("count", 0) if div else 0
-    div_pct = div.get("pct", 0.0) if div else 0.0
+    n_div = div.get("count") if div else 0
+    n_div = 0 if n_div is None else n_div
+    div_pct = div.get("pct") if div else 0.0
+    div_pct = 0.0 if div_pct is None else div_pct
     rhat_max = rhat.get("max") if rhat else None
 
-    if n_div > 0 and div_pct > DIVERGENCE_FAIR * 100:
+    if div.get("recorded") is False:
+        rating = "poor"
+    elif n_div > 0 and div_pct > DIVERGENCE_FAIR * 100:
         rating = "poor"
     elif rhat_max is not None and rhat_max > 1.05:
         rating = "poor"
@@ -242,7 +249,13 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
         named_params = [
             p for p in params if not any(tok in str(p).lower() for tok in non_param)
         ]
-        if has_divergences:
+        if any("unknown" in str(p).lower() for p in params):
+            steps.append(
+                "sample_stats.diverging is missing — store BlackJAX is_divergent "
+                "(or CmdStan divergences) on InferenceData. A missing flag is not "
+                "zero divergences. Do not interpret."
+            )
+        elif has_divergences:
             steps.append(
                 "Divergences detected — reparameterize first (non-centered hierarchical "
                 "scales; constrained decls or explicit Jacobian; Gamma/Exponential "
@@ -291,7 +304,8 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
         if n_high:
             steps.append(
                 "LOO Pareto-k > 0.7 — inspect those points; consider Student-t "
-                "or K-fold / moment matching. Use az.loo(..., pointwise=True)."
+                "or K-fold. Moment matching needs a callable log density, not a "
+                "CmdStan CSV. Use az.loo(..., pointwise=True)."
             )
         if n_nonfinite:
             steps.append(

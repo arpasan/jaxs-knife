@@ -1,6 +1,6 @@
 """Prepare isolated trial folders and grade them from outside.
 
-Solvers are separate blank-memory agents. This script does not launch them.
+This script does not launch solvers.
 """
 
 from __future__ import annotations
@@ -24,7 +24,8 @@ from workspace import (
 )
 
 L2_ROOT = Path(__file__).resolve().parent
-DEFAULT_RUNS = L2_ROOT / "local_runs"
+REPO_ROOT = L2_ROOT.parents[1]
+DEFAULT_RUNS = REPO_ROOT / "skill-on-off"
 KEEP_AFTER_WIPE = frozenset({"batch.json", "receipt.json", "grade.json"})
 KEEP_TEXT_SUFFIXES = frozenset({".md", ".py", ".stan", ".json", ".txt"})
 DROP_ON_WIPE = frozenset({".nc", ".png", ".pdf", ".npy", ".so", ".o", ".hpp", ".d"})
@@ -36,7 +37,7 @@ def new_run_root(base: Path = DEFAULT_RUNS) -> Path:
     Parameters
     ----------
     base : Path
-        Parent for local runs (gitignored).
+        Parent for live run trees (gitignored).
 
     Returns
     -------
@@ -63,7 +64,7 @@ def prepare_replicates(
     pack_id : str
         Scenario pack.
     n : int
-        Replicate count (use ≥ 3 for pass^k).
+        Replicate count.
     condition : Condition
         Skill on or off.
     run_root : Path
@@ -156,7 +157,7 @@ def wipe_workspaces(run_root: Path, *, keep_text: bool = True) -> int:
     Parameters
     ----------
     run_root : Path
-        A local_runs timestamp directory.
+        A timestamped run directory.
     keep_text : bool
         Keep small text artifacts inside ``rep-*`` folders.
 

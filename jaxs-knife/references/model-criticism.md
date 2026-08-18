@@ -15,6 +15,22 @@ Look at shape, spread, tails, and decision-relevant functionals — not a poster
 
 Decision functionals (contrasts, ratios, inverse-link doses) belong in `generated quantities` or `vmap`, computed from the same parameters as the fit. Do not reconstruct them in numpy after the fact.
 
+When the PPC misses the data, pick the repair from the **observed** misfit, then change one thing and refit.
+
+| Observed misfit | First repair |
+|---|---|
+| Tails too light | Student-t / heavier residual |
+| Counts overdispersed | `neg_binomial_2` |
+| Groups ignored | Hierarchy (non-centered if weakly identified) |
+| Mean systematically off | Likelihood family or link |
+| Mixture / labels unstable | [mixtures.md](mixtures.md) |
+
+Do not stack three likelihood changes in one refit.
+
+## Predict at new X
+
+New covariates go through `generate_quantities` (Stan) or `vmap` (JAX) on the fitted draws. Do not rebuild a likelihood in numpy. There is no NLPD leaderboard and no `test.csv` ritual — if the user did not hold out a prediction set, do not invent one.
+
 ## PSIS-LOO (single-model)
 
 ```python
@@ -27,7 +43,7 @@ Requires pointwise `log_likelihood` on the InferenceData (Stan `log_lik` in GQ, 
 |---|---|
 | < 0.5 | Trust LOO |
 | 0.5–0.7 | Investigate those points |
-| ≥ 0.7 | K-fold or moment matching; do not trust that ELPD |
+| ≥ 0.7 | K-fold; do not trust that ELPD. Moment matching needs a callable density, not a CmdStan CSV |
 
 `p_loo` ≫ parameter count → misspecification or priors too weak.
 
@@ -43,7 +59,7 @@ Requires pointwise `log_likelihood` on the InferenceData (Stan `log_lik` in GQ, 
 
 ## Fake-data recovery
 
-Before the real fit: simulate from the same program at known parameter values, refit, and confirm the named estimand falls in the posterior. This is the cheap form of the Gelman–Vehtari fake-data step. SBC is the heavier version below.
+Before the real fit: simulate from the same program at known parameter values, refit, and confirm the **named estimand** falls in the **interval you will report** (50% typical + 94% range). The recovery fit must pass the same diagnose gates as a real fit. One recovery is a check that the pipeline can see the truth; it is not a coverage claim. Coverage needs repeated datasets (SBC or simulated replications).
 
 ## SBC
 

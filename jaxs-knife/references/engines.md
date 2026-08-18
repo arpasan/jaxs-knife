@@ -45,6 +45,32 @@ NumPyro is optional when plates help. Override the classic 8-schools HalfCauchy 
 - Rewrite a Stan-shaped GLM in NumPyro without a reason the Stan language cannot express.
 - Likelihood-free / simulation-based inference (no tractable likelihood).
 
+## Data contract (Stan side)
+
+Stan arrays are 1-based. Build the group map **once** and reuse it for any prediction data.
+
+```stan
+array[N] int<lower=1, upper=J> gg;
+```
+
+`pandas` category codes need `+ 1`. `int` slots reject float arrays — counts must be integer dtypes. An off-by-one group index can pass every convergence gate and still be the wrong pooling structure.
+
+Pass feature and group names into ArviZ (`coords` / `dims` on `from_cmdstanpy` / `from_blackjax`) so reports are not `theta[0]`.
+
 ## Conversion
 
-`scripts/to_inference_data.py`: `from_cmdstanpy`, `from_nutpie`, `from_blackjax`. Downstream scripts never see the engine.
+`scripts/to_inference_data.py`: `from_cmdstanpy`, `from_nutpie`, `from_blackjax`. The scripts' API is InferenceData **groups**, not the engine name.
+
+| Consumer | Needs |
+|---|---|
+| Always | `posterior` |
+| Divergences / E-BFMI | `sample_stats.diverging` (and `energy` when present) |
+| PSIS-LOO | `log_likelihood` from GQ / `vmap` — not `_lupdf` |
+| `calibration_check.py` | `posterior_predictive` **and** `observed_data` |
+| `psense_summary` | `log_likelihood` and `log_prior` |
+
+BlackJAX exposes `NUTSInfo.is_divergent`. Store it as `diverging` (`from_blackjax` renames `is_divergent` / `divergent`). Omit `sample_stats` and diagnose records **unknown**, not zero divergences.
+
+nutpie does not run generated quantities. A nutpie trace passed straight through has no `log_likelihood` and no PPC until a second GQ / `vmap` pass. LOO and calibration then skip or fail; that is not a clean bill of health.
+
+Do not put a Python `if` or `clip` on a parameter inside a JAX log-density. Constrained decls / `log1p_exp` / a bijector. Hard clips flatten gradients.

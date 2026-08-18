@@ -2,6 +2,10 @@
 
 If any check fails, do **not** interpret results.
 
+## Before the first draw
+
+Sampling that never starts is not a geometry problem. CmdStan `Initialization failed`, `Scale parameter is 0`, `Log probability evaluates to log(0)`, or a NaN JAX log-density at the init are data, bound, or precision bugs. Fix the declaration, the dtype, or the init; enable `jax_enable_x64`. Do not raise `adapt_delta` first.
+
 ```bash
 python scripts/diagnose_model.py --idata <slug>/inference_data.nc --output <slug>/diagnostics.json
 ```
@@ -41,4 +45,4 @@ E-BFMI < 0.3: momentum resampling is sick — usually a funnel or heavy tails. T
 
 ## Identifiability
 
-If two components always appear together in the likelihood, only their sum is identified. Merge them or restructure the data. Discrete latents: marginalize; do not plug a soft argmax into a nonlinear likelihood.
+If two components always appear together in the likelihood, only their sum is identified. Merge them or restructure the data. Discrete latents and mixtures: [mixtures.md](mixtures.md). Label switching is not cured by more draws.

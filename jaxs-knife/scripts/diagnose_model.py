@@ -72,6 +72,47 @@ def _max_from_dataset(ds: Any) -> Optional[float]:
 # ==================================================
 
 
+_DIVERGENCE_NAMES = ("diverging", "is_divergent", "divergent")
+
+
+def _divergence_block(idata: Any) -> Dict[str, Any]:
+    """Read sampler divergences. A missing flag is unknown, not zero."""
+    sample_stats = getattr(idata, "sample_stats", None)
+    data_vars = getattr(sample_stats, "data_vars", None) if sample_stats is not None else None
+    if data_vars is None:
+        return {
+            "recorded": False,
+            "count": None,
+            "pct": None,
+            "ok": False,
+            "message": (
+                "No sample_stats group. Pass diverging (BlackJAX is_divergent "
+                "is renamed on conversion). Missing is not a pass."
+            ),
+        }
+    name = next((n for n in _DIVERGENCE_NAMES if n in data_vars), None)
+    if name is None:
+        return {
+            "recorded": False,
+            "count": None,
+            "pct": None,
+            "ok": False,
+            "message": (
+                "sample_stats has no diverging / is_divergent flag. "
+                "Missing is not a pass."
+            ),
+        }
+    arr = sample_stats[name]
+    n_div = int(arr.sum())
+    total = int(arr.size)
+    return {
+        "recorded": True,
+        "count": n_div,
+        "pct": round(100 * n_div / total, 2) if total else 0.0,
+        "ok": n_div == 0,
+    }
+
+
 def _parameter_names(idata: Any) -> List[str]:
     """Posterior names that are parameters, not generated quantities."""
     data_vars = getattr(idata.posterior, "data_vars", [])
@@ -107,8 +148,9 @@ def check_convergence(
     Dict[str, Any]
         Serializable convergence block for ``check_diagnostics``.
     """
+    divergences = _divergence_block(idata)
     if HAS_DIAGNOSE:
-        has_errors, diag = azs.diagnose(
+        _has_errors, diag = azs.diagnose(
             idata, return_diagnostics=True, show_diagnostics=False
         )
         skip = ("y_rep", "yrep", "log_lik", "log_likelihood", "lp__")
@@ -122,15 +164,13 @@ def check_convergence(
             for p in diag.get("ess", {}).get("bad_params", [])
             if not str(p).lower().startswith(skip)
         ]
-        div = diag.get("divergent", {})
-        n_div = int(div.get("n_divergent", 0))
         td = diag.get("treedepth", {})
         n_td = int(td.get("n_max", 0))
         failed_chains = [int(c) for c in diag.get("bfmi", {}).get("failed_chains", [])]
         all_ok = (
             len(rhat_bad) == 0
             and len(ess_bad) == 0
-            and n_div == 0
+            and bool(divergences.get("ok"))
             and n_td == 0
             and len(failed_chains) == 0
         )
@@ -146,11 +186,7 @@ def check_convergence(
             },
             "ess_bulk": {"ok": len(ess_bad) == 0, "problematic_params": ess_bad},
             "ess_tail": {"ok": len(ess_bad) == 0, "problematic_params": ess_bad},
-            "divergences": {
-                "count": n_div,
-                "pct": round(float(div.get("pct", 0.0)), 2),
-                "ok": n_div == 0,
-            },
+            "divergences": divergences,
             "treedepth": {
                 "ok": n_td == 0,
                 "n_max": n_td,
@@ -172,19 +208,6 @@ def check_convergence(
         rhat_ok = bool(rhat.notna().all() and (rhat <= 1.01).all())
         ess_bulk_ok = bool((summary["ess_bulk"] >= 100 * n_chains).all())
         ess_tail_ok = bool((summary["ess_tail"] >= 100 * n_chains).all())
-
-        sample_stats = getattr(idata, "sample_stats", None)
-        data_vars = getattr(sample_stats, "data_vars", None) if sample_stats is not None else None
-        if data_vars is not None and "diverging" in data_vars:
-            n_div = int(idata.sample_stats["diverging"].sum())
-            total = int(idata.sample_stats["diverging"].size)
-            divergences = {
-                "count": n_div,
-                "pct": round(100 * n_div / total, 2) if total else 0.0,
-                "ok": n_div == 0,
-            }
-        else:
-            divergences = {"count": 0, "pct": 0.0, "ok": True}
 
         results: Dict[str, Any] = {
             "rhat": {
@@ -229,7 +252,12 @@ def check_convergence(
             },
             "ess_bulk": {"ok": False, "problematic_params": ["diagnose_fallback_failed"]},
             "ess_tail": {"ok": False, "problematic_params": ["diagnose_fallback_failed"]},
-            "divergences": {"count": 0, "pct": 0.0, "ok": False},
+            "divergences": {
+                "recorded": False,
+                "count": None,
+                "pct": None,
+                "ok": False,
+            },
         }
 
 

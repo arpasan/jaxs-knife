@@ -1,4 +1,4 @@
-"""Write committed ``results/*.json`` from ``run_trial.py --grade`` output."""
+"""Write per-cell score JSON from ``run_trial.py --grade`` output."""
 
 from __future__ import annotations
 
@@ -13,8 +13,9 @@ from isolation import contamination
 from passk import pass_at_k
 
 L2_ROOT = Path(__file__).resolve().parent
-RESULTS = L2_ROOT / "results"
-DEFAULT_MODEL = "cursor-grok-4.6-xhigh-fast"
+REPO_ROOT = L2_ROOT.parents[1]
+RESULTS = REPO_ROOT / "skill-on-off"
+DEFAULT_MODEL = "unspecified"
 
 
 def _git_sha() -> str:
@@ -127,7 +128,7 @@ def emit_cell(
 
 
 def write_cell(payload: Dict[str, Any], dest: Optional[Path] = None) -> Path:
-    """Write ``results/{pack}_{condition}_grok46.json``.
+    """Write ``{pack}_{condition}.json`` under the run directory.
 
     Parameters
     ----------
@@ -143,7 +144,7 @@ def write_cell(payload: Dict[str, Any], dest: Optional[Path] = None) -> Path:
     """
     if dest is None:
         cond = "with" if payload["condition"] == "with" else "without"
-        dest = RESULTS / f"{payload['pack']}_{cond}_grok46.json"
+        dest = RESULTS / f"{payload['pack']}_{cond}.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return dest

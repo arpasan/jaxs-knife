@@ -25,7 +25,8 @@ Compatible with Cursor and any agent that supports the
 7. Model criticism (PPC in generated quantities or `vmap`, PSIS-LOO, calibration)
 8. Prior sensitivity when conclusions are decision-relevant
 9. Model comparison (PSIS-LOO, stacking)
-10. A canonical `<slug>/report.md` whose ratings come from scripts, not vibes
+10. A canonical `<slug>/report.md` whose ratings are computed from
+    diagnostics, not asserted
 
 ## Install
 
@@ -40,24 +41,53 @@ Do this only when you mean the skill to attach automatically.
 
 ## Evaluation
 
-Isolated skill-on vs. skill-off suites, same model, three independent
-attempts, pass^1 / pass^3. Combined pass is the report and diagnose
-gates (Band A) and, when a pack records a hidden data-generating value,
-whether that value sits in the 94% interval (Band B). Scores:
-`evals/l2/results/on_off.json`.
+Each task was assigned two conditions: skill absent from the agent's
+workspace, then skill attached. Nothing else changed. One model was
+held fixed across both conditions. Each task's prompt and data file
+were used as stored under `evals/l2/packs/`. Three independent
+attempts were made per task and condition, each in its own directory
+with no shared memory. A deterministic script grades the files the
+agent left behind. Scores:
+[`evals/l2/results/README.md`](evals/l2/results/README.md)
+([`on_off.json`](evals/l2/results/on_off.json)).
 
-**Homework suite** (S1–S8): combined pass^1 **5/24 → 21/24**. Band B was
-15/15 under both conditions (five of eight packs record hidden truth).
+An attempt passes when the write-up meets a fixed workflow checklist
+(report, 50% and 94% intervals, prior predictive check, diagnostics,
+limitations, draws on disk) and, when the task records the parameter
+values used to generate its data, each value lies in the reported 94%
+interval. Those values are withheld from the agent's directory; they
+remain in this repository so the grade is checkable.
 
-**Science suite** (M1, F1, X1, C1): combined pass^1 **6/12 → 12/12**.
-Band B was 12/12 under both conditions.
+```text
++-----------------------+--------------------------+-----------+----------+
+| Suite                 | Measure                  | skill off | skill on |
++-----------------------+--------------------------+-----------+----------+
+| Eight standard tasks  | attempts passing         |    5 / 24 |  21 / 24 |
+|                       | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
+|                       | generating-value covered |   15 / 15 |  15 / 15 |
++-----------------------+--------------------------+-----------+----------+
+| Four additional tasks | attempts passing         |    6 / 12 |  12 / 12 |
+|                       | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
+|                       | generating-value covered |   12 / 12 |  12 / 12 |
++-----------------------+--------------------------+-----------+----------+
+```
 
-The measured lift is the write-up and diagnose gates, not covering
-hidden values. C1 is left-truncated at a write threshold of 20; a
-plain-normal interval cannot cover the process mean. Skill-off still
-recovered from the threshold stated in the prompt.
+Coverage is scored only on tasks that record generating values (five of
+the eight standard tasks, and all four additional ones). Each such task
+was accepted only if a reference interval under the task's own priors
+contained the value, so that row is a floor check: it was already
+complete without the skill, and attaching the skill did not disturb it.
 
-The public score file does not name a solver.
+The difference between conditions is therefore confined to the write-up
+and its diagnostics. In this run the model specified and fit these
+problems under both conditions; what it omitted when unprompted is the
+prior predictive check, the convergence statement, the criticism step,
+and the interval discipline that let a reader audit the result. That is
+what the skill supplies. It is not a claim of a better posterior. Two
+of the eight standard tasks still have failing attempts with the skill
+attached; see the per-task table in the results note.
+
+Design and grading predicates: [`evals/l2/PROTOCOL.md`](evals/l2/PROTOCOL.md).
 
 ## Tests
 
@@ -65,10 +95,8 @@ The public score file does not name a solver.
 python -m pytest
 ```
 
-`evals/l0` checks the diagnostic JSON contract on known-good and known-bad
-traces. `evals/l2` grades isolated workflow fixtures. `evals/smoke` runs
-live CmdStanPy and BlackJAX NUTS on the same mini-normal data.
-`evals/l1` is a manual trigger-description diagnostic, not a gate.
+Fast checks live under `evals/l0` and `evals/l2`. Live NUTS smoke tests
+live under `evals/smoke`. See [`evals/README.md`](evals/README.md).
 
 ## Layout
 

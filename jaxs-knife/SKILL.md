@@ -32,7 +32,7 @@ Every analysis follows this sequence. Do not skip criticism.
 8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too.
 9. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
 10. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
-11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not vibes.
+11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not asserted.
 
 ## Engine decision
 

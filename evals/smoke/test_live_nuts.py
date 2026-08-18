@@ -26,7 +26,7 @@ def _assert_healthy(report: dict, engine: str) -> None:
 def _assert_recovers(idata: object, engine: str) -> None:
     posterior = posterior_from_idata(idata, ("mu", "sigma"))
     rec = assess_recovery(posterior, TRUTH, nominal=0.94)
-    assert rec["passed"] is True, f"{engine} Band B {rec}"
+    assert rec["passed"] is True, f"{engine} coverage {rec}"
 
 
 def test_live_cmdstan_nuts() -> None:

@@ -17,9 +17,21 @@ Gitignored local working directories (not in a clone):
 - `.local/` — internal working trees
 - `stan_models/` — CmdStan compile cache
 
-Do not start an isolated solver from a chat that has seen `evals/` gold.
-Do not copy rubric, pack `meta.json`, or eval prompts into `SKILL.md`
-or into an agent working directory.
+Each local working directory carries its own `README.md` stating what it
+holds, what was held fixed, how to read it, and what must not be
+touched. Read that file before running anything inside one, and before
+changing a published number that depends on it. The run trees are the
+only evidence behind `evals/l2/results/on_off.json`, and they are not
+reproducible bit-for-bit if deleted. `.local/README.md` indexes the rest.
+Nothing from these directories — model ids, comparator names,
+per-attempt content, or generating values in transit — belongs in a
+tracked file.
+
+An isolated solver is a fresh agent whose working directory is one
+attempt folder (`rep-*`) containing only the files that attempt is
+allowed to see. Do not start one from a chat that has seen `evals/`
+gold. Do not copy rubric, pack `meta.json`, or eval prompts into
+`SKILL.md` or into an agent working directory.
 
 ## Conventions
 

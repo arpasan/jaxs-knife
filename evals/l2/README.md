@@ -1,7 +1,7 @@
 # Isolated workflow grades
 
 Pytest checks the grader. The same scripts prepare isolated folders and
-score them. Solvers are separate agents; this tree does not launch them.
+score them. This tree does not launch agents.
 
 ```bash
 python -m pytest evals/l2
@@ -30,10 +30,8 @@ python evals/l2/compare.py --ours ours/batch.json --other other/batch.json --k 1
 
 Writes default to `evals/compare/` (gitignored).
 
-## Packs
+## Tasks
 
-`packs/S1` … `S8` are the homework suite. `M1`, `F1`, `X1`, and `C1` are
-the science suite. Each pack ships `prompt.md` and `data.csv`. Prompts
-do not name this skill. `meta.json` is not copied into the workspace.
-
-Public aggregate scores: [results/on_off.json](results/on_off.json).
+Each folder under `packs/` ships `prompt.md` and `data.csv`. `meta.json`
+is not copied into the workspace. Public aggregate scores:
+[results/on_off.json](results/on_off.json).

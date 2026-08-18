@@ -1,10 +1,11 @@
 {
   "date": "2026-08-18",
   "eval_commit": "4d93ad0",
-  "n": 3,
-  "headline": "combined pass is Band A, and Band B when a pack records hidden truth",
-  "homework": {
-    "pack_ids": [
+  "attempts_per_cell": 3,
+  "pass_definition": "an attempt passes when every workflow-checklist predicate holds and, when the task records generating values, the reported 94% interval contains each of them",
+  "standard": {
+    "label": "Eight standard tasks",
+    "task_ids": [
       "S1",
       "S2",
       "S3",
@@ -14,133 +15,191 @@
       "S7",
       "S8"
     ],
-    "combined_successes": {
+    "attempt_successes": {
       "off": 5,
       "on": 21,
       "out_of": 24
     },
-    "combined_pass_at_1": {
+    "attempt_pass_at_1": {
       "off": 0.2083,
       "on": 0.875
     },
-    "band_b_successes": {
+    "tasks_passing_all_attempts": {
+      "off": 0,
+      "on": 6,
+      "out_of": 8
+    },
+    "checklist_successes": {
+      "off": 5,
+      "on": 21,
+      "out_of": 24
+    },
+    "coverage_successes": {
       "off": 15,
       "on": 15,
       "out_of": 15
     },
-    "packs": [
+    "coverage_note": "scored only on tasks that record generating values; each such task's data was accepted only if a reference interval under its own priors covered them",
+    "tasks": [
       {
         "id": "S1",
+        "label": "linear regression",
+        "off_attempts_passing": 2,
         "off_pass_at_1": 0.6667,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S2",
+        "label": "hierarchical school effects",
+        "off_attempts_passing": 1,
         "off_pass_at_1": 0.3333,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 1,
         "on_pass_at_1": 0.3333,
         "on_pass_at_3": 0.0
       },
       {
         "id": "S3",
+        "label": "overdispersed counts",
+        "off_attempts_passing": 0,
         "off_pass_at_1": 0.0,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S4",
+        "label": "linear regression with prior sensitivity",
+        "off_attempts_passing": 1,
         "off_pass_at_1": 0.3333,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S5",
+        "label": "positive scale (constraint or Jacobian)",
+        "off_attempts_passing": 0,
         "off_pass_at_1": 0.0,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S6",
+        "label": "binomial dose-response",
+        "off_attempts_passing": 1,
         "off_pass_at_1": 0.3333,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S7",
+        "label": "two-component mixture",
+        "off_attempts_passing": 0,
         "off_pass_at_1": 0.0,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "S8",
+        "label": "JAX log-density",
+        "off_attempts_passing": 0,
         "off_pass_at_1": 0.0,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 2,
         "on_pass_at_1": 0.6667,
         "on_pass_at_3": 0.0
       }
     ]
   },
-  "science": {
-    "pack_ids": [
+  "additional": {
+    "label": "Four additional tasks",
+    "task_ids": [
       "M1",
       "F1",
       "X1",
       "C1"
     ],
-    "combined_successes": {
+    "attempt_successes": {
       "off": 6,
       "on": 12,
       "out_of": 12
     },
-    "combined_pass_at_1": {
+    "attempt_pass_at_1": {
       "off": 0.5,
       "on": 1.0
     },
-    "band_b_successes": {
+    "tasks_passing_all_attempts": {
+      "off": 1,
+      "on": 4,
+      "out_of": 4
+    },
+    "checklist_successes": {
+      "off": 6,
+      "on": 12,
+      "out_of": 12
+    },
+    "coverage_successes": {
       "off": 12,
       "on": 12,
       "out_of": 12
     },
-    "packs": [
+    "coverage_note": "scored only on tasks that record generating values; each such task's data was accepted only if a reference interval under its own priors covered them",
+    "tasks": [
       {
         "id": "M1",
+        "label": "two-component mixture",
+        "off_attempts_passing": 3,
         "off_pass_at_1": 1.0,
         "off_pass_at_3": 1.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "F1",
+        "label": "grouped hierarchical",
+        "off_attempts_passing": 0,
         "off_pass_at_1": 0.0,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "X1",
+        "label": "JAX location-scale",
+        "off_attempts_passing": 1,
         "off_pass_at_1": 0.3333,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       },
       {
         "id": "C1",
+        "label": "recordings that omit values below a threshold",
+        "off_attempts_passing": 2,
         "off_pass_at_1": 0.6667,
         "off_pass_at_3": 0.0,
+        "on_attempts_passing": 3,
         "on_pass_at_1": 1.0,
         "on_pass_at_3": 1.0
       }
     ]
   },
   "notes": [
-    "eval_commit is the skill revision used for the runs.",
-    "This file omits solver ids, per-attempt dumps, and hidden values."
+    "eval_commit is the skill revision used for the runs."
   ]
 }

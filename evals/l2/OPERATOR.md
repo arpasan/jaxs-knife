@@ -4,9 +4,9 @@ Solvers open a sealed folder, not this repository. Do not start a
 solver from a chat that has opened `evals/`.
 
 Pack prompts name the scientific story (instrument SE, grouping, assay
-FPR, two-component sample, location-scale names). They do not name an
-engine or a repair. The workflow checklist grades those steps; it does
-not require Stan or JAX.
+FPR, two-component sample, stated quartiles, blank cells). They do
+not name an engine or a repair. The workflow checklist grades those
+steps; it does not require Stan or JAX.
 
 ## Sequence
 

@@ -12,6 +12,7 @@ from generate_pack_data import (
     check_h1,
     check_j1,
     check_k1,
+    check_m1,
     PACKS,
 )
 
@@ -45,5 +46,9 @@ def test_k1_single_normal_misses_em_covers() -> None:
     assert check_k1() is True
 
 
-def test_j1_csv_recovers_mu_and_sigma() -> None:
+def test_j1_gaussian_q95_misses_lognormal_covers() -> None:
     assert check_j1() is True
+
+
+def test_m1_complete_case_misses_tobit_covers() -> None:
+    assert check_m1() is True

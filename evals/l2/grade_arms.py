@@ -20,7 +20,7 @@ def grade_flat_arm(arm_dir: Path) -> Dict[str, Dict[str, Any]]:
     Parameters
     ----------
     arm_dir : Path
-        Directory that contains five task folders.
+        Directory that contains one folder per sealed task.
 
     Returns
     -------

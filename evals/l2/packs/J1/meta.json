@@ -1,13 +1,20 @@
 {
   "id": "J1",
   "engine": "either",
-  "copy_to_agent": ["prompt.md", "data.csv"],
+  "copy_to_agent": [
+    "prompt.md",
+    "data.csv"
+  ],
   "truth": {
-    "mu": 0.25,
-    "sigma": 0.48
+    "q95": 9.212418
   },
   "aliases": {
-    "mu": ["mu", "mean"],
-    "sigma": ["sigma", "sig", "scale"]
+    "q95": [
+      "q95",
+      "q_95",
+      "p95",
+      "quantile_95",
+      "y_q95"
+    ]
   }
 }

@@ -10,12 +10,14 @@
     "H1",
     "A1",
     "K1",
-    "J1"
+    "J1",
+    "M1"
   ],
   "pass_definition": "an attempt passes when every workflow-checklist predicate holds and the reported 94% interval contains each recorded generating value",
   "notes": [
     "Scores will be written after a sealed skill-off / skill-on run.",
     "Each cell is one Grok 4.6 attempt and one Opus 5 attempt, not two copies of one model.",
-    "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments."
+    "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments.",
+    "The suite is six tasks (24 jobs)."
   ]
 }

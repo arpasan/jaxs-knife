@@ -16,7 +16,7 @@ def _fake(passed: bool) -> dict:
 
 
 def test_write_cells_stacks_models(tmp_path: Path) -> None:
-    packs = ("E1", "H1", "A1", "K1", "J1")
+    packs = ("E1", "H1", "A1", "K1", "J1", "M1")
     fake_arm = {p: _fake(True) for p in packs}
     arms = {
         "off-grok": fake_arm,

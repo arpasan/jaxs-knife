@@ -8,7 +8,8 @@
   "truth": {
     "mu": 0.0,
     "tau": 1.6,
-    "theta1": -2.600767
+    "theta1": -2.365798,
+    "theta_new": 0.376097
   },
   "aliases": {
     "mu": [
@@ -24,6 +25,12 @@
       "theta1",
       "theta_1",
       "theta[1]"
+    ],
+    "theta_new": [
+      "theta_new",
+      "theta_pred",
+      "theta_star",
+      "new_theta"
     ]
   }
 }

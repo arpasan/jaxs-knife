@@ -89,6 +89,18 @@ def test_posterior_from_idata_aliases_ld50() -> None:
     assert float(out["ld50"].mean()) == 0.25
 
 
+def test_posterior_from_idata_reads_generated_q95() -> None:
+    from band_b import posterior_from_idata
+
+    class _IdataPPC:
+        def __init__(self) -> None:
+            self.posterior = _Post({"mu": np.zeros((2, 8))})
+            self.posterior_predictive = _Post({"q95": np.full((2, 8), 9.2)})
+
+    out = posterior_from_idata(_IdataPPC(), ("q95",))
+    assert abs(float(out["q95"].mean()) - 9.2) < 1e-12
+
+
 def test_posterior_from_idata_splits_ordered_mu() -> None:
     from band_b import posterior_from_idata
 

@@ -41,10 +41,10 @@ Do this only when you mean the skill to attach automatically.
 
 ## Evaluation
 
-The sealed suite is five tasks under `evals/l2/packs/`. Each task is
+The sealed suite is six tasks under `evals/l2/packs/`. Each task is
 run in two conditions (skill absent from the host catalog, then the
 skill attached) and by two solvers (one Grok 4.6 attempt and one
-Opus 5 attempt): 20 jobs. The two attempts in a cell are different
+Opus 5 attempt): 24 jobs. The two attempts in a cell are different
 models, not two copies of one model. A deterministic script grades
 the files the agent left behind.
 
@@ -62,11 +62,11 @@ the reported 94% interval. Those values are withheld from the agent's
 directory; they remain in this repository so the grade is checkable.
 The checklist is the scientific workflow, not an engine fashion test.
 
-Four tasks accept a CSV only when a naive interval misses the named
+Each task accepts a CSV only when a naive interval misses the named
 estimand and a reference interval under the task's observation model
 covers it. The instrument-error reference estimates unmarked-`x`
-moments from the instrument columns. J1 is a location-scale floor
-check.
+moments from the instrument columns. Coverage looks up those named
+estimands in the posterior or in generated quantities.
 
 Design and grading predicates: [`evals/l2/PROTOCOL.md`](evals/l2/PROTOCOL.md).
 

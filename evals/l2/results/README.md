@@ -11,7 +11,7 @@ the repository. Per-attempt files stay local and are not published.
 `on_off.json` is `not_yet_run`. A prior sealed run was withdrawn
 after the instrument-error coverage screen was found to pin
 generating latent moments. New scores will be written after a
-cue-free rerun on the same five tasks.
+cue-free rerun on the six sealed tasks.
 
 ## What a pass means
 

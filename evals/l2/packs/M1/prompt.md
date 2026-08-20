@@ -1,9 +1,6 @@
-`y` in data.csv is a positive sample.
+`y` in data.csv is a response. Some cells are blank. `x` is a predictor.
 
-An expert states that a new unit is above 0, near 0.40 at the lower
-quartile, near 1.0 at the median, and near 2.5 at the upper quartile.
-
-Report the 95th percentile of a new unit as `q95` in the saved
+Report the intercept `alpha` and the slope `beta` in the saved
 posterior.
 
 Prior predictive checks before sampling. Diagnose R-hat, ESS, and

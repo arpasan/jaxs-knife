@@ -4,26 +4,26 @@ Paired evaluation of the skill: same task, skill off then skill on,
 two solvers (one attempt each), deterministic grade. The harness lives
 under this directory. Live solver trees are not committed.
 
-There is one sealed suite, called **the test**: five tasks, two
-conditions, two solvers (20 jobs).
+There is one sealed suite, called **the test**: six tasks, two
+conditions, two solvers (24 jobs).
 
 ## Design
 
 | Item | Choice |
 |---|---|
-| Tasks | E1, H1, A1, K1, J1 under `packs/` |
+| Tasks | E1, H1, A1, K1, J1, M1 under `packs/` |
 | Conditions | skill off, then skill on |
 | Solvers | one Grok 4.6 attempt and one Opus 5 attempt per task and condition |
 | Prompt | pack `prompt.md` verbatim; no coaching of the repair |
 | Agent folder | `prompt.md` and `data.csv` only |
 | Generating values | `meta.json` stays in this repository; never copied into the agent folder |
 | Grade | workflow checklist on written files; coverage of recorded generating values |
-| Headline | attempts passing (out of 10 per condition), tasks where both solvers pass, and coverage |
+| Headline | attempts passing (out of 12 per condition), tasks where both solvers pass, and coverage |
 | Judge | no LLM string-judge |
 
 The two attempts in a cell are different models, not two independent
 copies of one model. pass^1 is still the ordinary pass rate over the
-ten attempts in a condition. "Both solvers" is reported separately.
+twelve attempts in a condition. "Both solvers" is reported separately.
 It is not τ-bench pass^3.
 
 ## Tasks
@@ -31,15 +31,17 @@ It is not τ-bench pass^3.
 | Id | What the prompt states | Engine | Coverage screen |
 |---|---|---|---|
 | E1 | Response `y`, instrument reading `x`, reported `x_se` | either | Naive OLS misses the slope; a latent-`x` reference that estimates unmarked-`x` moments from the instrument columns covers intercept and slope |
-| H1 | `y` grouped by `group`; name `mu`, `tau`, `theta1` | either | Complete-pool interval misses the group-1 mean; a hierarchical reference covers `mu`, `tau`, and `theta1` |
+| H1 | `y` grouped by `group`; name `mu`, `tau`, `theta1`, `theta_new` | either | Complete-pool interval misses the group-1 mean and a new-group mean; a hierarchical reference covers `mu`, `tau`, `theta1`, and `theta_new` |
 | A1 | Binary assay calls; manufacturer false-positive rate stated | either | Naive proportion misses prevalence; an assay-corrected reference covers it |
 | K1 | Sample from a two-component process; name `mu1`, `mu2`, `weight` | either | A single-normal mean misses both locations; a two-component reference covers all three |
-| J1 | Location-scale sample; name `mu`, `sigma`; scale stays positive | either | Floor check: a correct location-scale reference covers `mu` and `sigma`. A missing Jacobian often still covers. Expected movement is the write-up, not a narrower interval. |
+| J1 | Positive sample; expert quartiles stated; name `q95` | either | A Gaussian tail interval misses the 95th percentile; a lognormal reference covers it |
+| M1 | Response `y` with blank cells; predictor `x`; name `alpha`, `beta` | either | Complete-case OLS misses the slope; a truncated-`y` reference covers intercept and slope |
 
 Prompts state the instrument, the grouping, the assay false-positive
-rate, or the named estimands. They do not name an engine (Stan, JAX,
-BlackJAX) or a repair (`log_mix`, ordered constraints, Jacobian,
-truncation syntax, attenuation). They do not name this skill.
+rate, stated quartiles, blank cells, or the named estimands. They do
+not name an engine (Stan, JAX, BlackJAX) or a repair (`log_mix`,
+ordered constraints, Jacobian, truncation syntax, attenuation,
+Tobit, JQPD). They do not name this skill.
 
 The workflow checklist is engine-neutral. A PyMC or other density
 language that writes the same scientific steps is not failed for
@@ -72,7 +74,7 @@ A robustness cut reports the checklist with and without the literal
 ## Procedure
 
 1. Four sealed solver trees (off-Grok, off-Opus, on-Grok, on-Opus),
-   each with five task folders.
+   each with six task folders.
 2. A fifth tree holds a copy of this harness and writes cell JSON
    with `grade_arms.py`.
 3. Rebuild the public aggregate with `evals/l2/summarize_on_off.py`.

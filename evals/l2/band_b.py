@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,6 +18,8 @@ DEFAULT_ALIASES: Dict[str, tuple[str, ...]] = {
     "mu": ("mu", "mean"),
     "tau": ("tau", "sigma_group", "sd_group", "group_sd"),
     "theta1": ("theta1", "theta_1", "theta[1]"),
+    "theta_new": ("theta_new", "theta_pred", "theta_star", "new_theta"),
+    "q95": ("q95", "q_95", "p95", "quantile_95", "y_q95"),
     "prevalence": ("prevalence", "p", "infection_rate"),
 }
 
@@ -147,26 +149,34 @@ def posterior_from_idata(
         Draw arrays for names that were found.
     """
     out: Dict[str, NDArray[np.floating]] = {}
-    try:
-        post = idata.posterior
-    except AttributeError:
+    groups: List[Any] = []
+    for key in ("posterior", "posterior_predictive", "predictions"):
         try:
-            post = idata["posterior"]
-        except Exception as exc:
-            raise AttributeError("no posterior group on InferenceData") from exc
+            groups.append(getattr(idata, key))
+        except AttributeError:
+            try:
+                groups.append(idata[key])
+            except Exception:
+                continue
+    if not groups:
+        raise AttributeError("no posterior or posterior_predictive group on InferenceData")
     alias_map: Dict[str, tuple[str, ...]] = dict(DEFAULT_ALIASES)
     if aliases:
         for key, values in aliases.items():
             alias_map[str(key)] = tuple(str(item) for item in values)
     for name in names:
-        found = _get_values(post, name)
-        if found is None:
-            for alt in alias_map.get(name, ()):
-                found = _get_values(post, alt)
-                if found is not None:
-                    break
-        if found is None:
-            found = _vector_component(post, name)
+        found = None
+        for post in groups:
+            found = _get_values(post, name)
+            if found is None:
+                for alt in alias_map.get(name, ()):
+                    found = _get_values(post, alt)
+                    if found is not None:
+                        break
+            if found is None:
+                found = _vector_component(post, name)
+            if found is not None:
+                break
         if found is not None:
             out[name] = found
     return out

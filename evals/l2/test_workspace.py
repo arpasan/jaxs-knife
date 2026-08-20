@@ -59,6 +59,9 @@ def test_truth_stays_in_pack_meta() -> None:
     assert truth is not None
     assert truth["beta"] == 1.2
     assert "theta1" in pack_aliases("H1")
+    assert "theta_new" in pack_aliases("H1")
+    assert "q95" in pack_aliases("J1")
+    assert "beta" in pack_aliases("M1")
     assert "prevalence" in pack_aliases("A1")
     assert pack_band_a_extra("E1") == []
     assert pack_band_a_extra("J1") == []

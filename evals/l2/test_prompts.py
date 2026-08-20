@@ -30,8 +30,15 @@ FORBIDDEN = (
     "cmdstan",
     "logdensity",
     "log-density",
+    "jqpd",
+    "j-qpd",
+    "metalog",
+    "gld",
+    "tobit",
+    "dropna",
+    "mnar",
 )
-EXPECTED = {"E1", "H1", "A1", "K1", "J1"}
+EXPECTED = {"E1", "H1", "A1", "K1", "J1", "M1"}
 
 
 def test_pack_prompts_do_not_name_the_skill() -> None:

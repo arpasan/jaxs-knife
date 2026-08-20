@@ -14,21 +14,22 @@ L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
 PUBLIC_PATH = L2_ROOT / "results" / "on_off.json"
 DEFAULT_CELL_DIR = REPO_ROOT / ".local" / "test"
-TASK_IDS: Tuple[str, ...] = ("E1", "H1", "A1", "K1", "J1")
+TASK_IDS: Tuple[str, ...] = ("E1", "H1", "A1", "K1", "J1", "M1")
 TASK_LABELS: Dict[str, str] = {
     "E1": "predictor with a reported instrument error",
-    "H1": "grouped observations",
+    "H1": "grouped observations and a new group",
     "A1": "assay with a stated false-positive rate",
     "K1": "two-component sample",
-    "J1": "location-scale sample",
+    "J1": "positive sample with stated quartiles",
+    "M1": "predictor with some blank responses",
 }
-SUITE_LABEL = "Five sealed tasks"
+SUITE_LABEL = "Six sealed tasks"
 MODELS: Tuple[str, ...] = ("grok-4.6", "opus-5")
 ATTEMPTS_PER_CELL = 2
 COVERAGE_NOTE = (
-    "scored on every task; four tasks accept a CSV only when a naive "
+    "scored on every task; each CSV is accepted only when a naive "
     "interval misses the named estimand and a reference interval under "
-    "the task's observation model covers it; J1 is a floor check"
+    "the task's observation model covers it"
 )
 PASS_DEFINITION = (
     "an attempt passes when every workflow-checklist predicate holds "
@@ -104,6 +105,7 @@ def pending_public_on_off() -> Dict[str, Any]:
             "Scores will be written after a sealed skill-off / skill-on run.",
             "Each cell is one Grok 4.6 attempt and one Opus 5 attempt, not two copies of one model.",
             "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments.",
+            "The suite is six tasks (24 jobs).",
         ],
     }
 

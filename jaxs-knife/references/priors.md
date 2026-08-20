@@ -34,8 +34,10 @@ report, not only of the sampled coordinate.
 When the user states quantiles and a bound, those *are* the prior. A
 named family that cannot hit them is the wrong model of the knowledge.
 Sample through the inverse CDF of a distribution that honors the stated
-support, then prior-predict on the outcome scale. Keep `exponential` /
-`normal(0, 2.5)` when nobody elicited quantiles.
+support (Johnson QPD or metalog when you need a closed form on a bound;
+do not paste an unmaintained include), then prior-predict on the
+outcome scale. Keep `exponential` / `normal(0, 2.5)` when nobody
+elicited quantiles.
 
 ## Selected or truncated samples
 

@@ -30,5 +30,5 @@ The skill folder that Cursor attaches is the inner skill directory, not
 the repository root. Do not clone the public repository as a solver
 workspace.
 
-Launch text for the five windows lives in the gitignored test tree
-(`.local/test/LAUNCH_PROMPTS.md` when that tree is present).
+Launch paste-blocks for the five windows live in the operator chat,
+not in this repository and not under `.local/test/`.

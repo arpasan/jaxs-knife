@@ -134,6 +134,13 @@ def pack_band_a_extra(pack_id: str) -> List[str]:
     return [str(item) for item in raw]
 
 
+def pack_band_a_skip(pack_id: str) -> List[str]:
+    """Optional Band A predicate ids to omit from pack ``meta.json``."""
+    meta = load_pack(pack_id)
+    raw = meta.get("band_a_skip") or []
+    return [str(item) for item in raw]
+
+
 def pack_aliases(pack_id: str) -> Dict[str, List[str]]:
     """Optional Band B name aliases from pack ``meta.json``.
 

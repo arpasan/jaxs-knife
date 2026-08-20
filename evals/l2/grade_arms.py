@@ -11,7 +11,7 @@ from typing import Any, Dict, Mapping, Optional, Sequence
 from emit_results import _git_sha, emit_cell
 from grade import grade_trial
 from summarize_on_off import TASK_IDS
-from workspace import pack_aliases, pack_band_a_extra, pack_truth
+from workspace import pack_aliases, pack_band_a_extra, pack_band_a_skip, pack_truth
 
 
 def grade_flat_arm(arm_dir: Path) -> Dict[str, Dict[str, Any]]:
@@ -38,6 +38,7 @@ def grade_flat_arm(arm_dir: Path) -> Dict[str, Dict[str, Any]]:
             truth=pack_truth(pack_id),
             aliases=pack_aliases(pack_id),
             extra_band_a=pack_band_a_extra(pack_id),
+            skip_band_a=pack_band_a_skip(pack_id),
         )
     return out
 

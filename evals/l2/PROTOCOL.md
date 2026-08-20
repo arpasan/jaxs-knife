@@ -45,7 +45,8 @@ Tobit, JQPD). They do not name this skill.
 
 The workflow checklist is engine-neutral. A PyMC or other density
 language that writes the same scientific steps is not failed for
-engine fashion. Coverage is on the named estimands.
+engine fashion. Coverage is on the named estimands. A1 has no
+positive scale, so `constraint_ok` is skipped there (`band_a_skip`).
 
 ## Grading
 

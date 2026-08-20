@@ -80,6 +80,56 @@ def test_prompt_file_is_not_scored(tmp_path: Path) -> None:
     assert report["passed"] is True, [p for p in report["predicates"] if not p["ok"]]
 
 
+def test_constraint_ok_can_be_skipped(tmp_path: Path) -> None:
+    trial = tmp_path / "a1"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        "prior predictive before sampling\n"
+        "p = pm.Beta('prevalence', 1.0, 1.0)\n"
+        "idata = pm.sample()\n"
+        "pm.sample_posterior_predictive(idata)\n"
+        "idata.to_netcdf('inference_data.nc')\n",
+        encoding="utf-8",
+    )
+    scored = evaluate_band_a(trial)
+    assert scored["passed"] is False
+    by_id = {p["id"]: p["ok"] for p in scored["predicates"]}
+    assert by_id["constraint_ok"] is False
+    skipped = evaluate_band_a(trial, skip=["constraint_ok"])
+    assert "constraint_ok" not in {p["id"] for p in skipped["predicates"]}
+    assert skipped["passed"] is True
+
+
+def test_never_pvalues_line_is_clean(tmp_path: Path) -> None:
+    trial = tmp_path / "never"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8")
+        + "\nNever “significant” / p-values.\n",
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    report = evaluate_band_a(trial)
+    by_id = {p["id"]: p["ok"] for p in report["predicates"]}
+    assert by_id["probability_language"] is True
+    assert report["passed"] is True
+
+
 def test_zero_divergences_in_prose_counts() -> None:
     report = evaluate_band_a(FIX / "pass_workflow")
     by_id = {p["id"]: p["ok"] for p in report["predicates"]}

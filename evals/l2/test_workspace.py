@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 
 from isolation import IsolationError
-from workspace import pack_aliases, pack_band_a_extra, pack_truth, prepare_workspace
+from workspace import (
+    pack_aliases,
+    pack_band_a_extra,
+    pack_band_a_skip,
+    pack_truth,
+    prepare_workspace,
+)
 
 
 def test_without_skill_copies_prompt_and_data_only(tmp_path: Path) -> None:
@@ -65,6 +71,8 @@ def test_truth_stays_in_pack_meta() -> None:
     assert "prevalence" in pack_aliases("A1")
     assert pack_band_a_extra("E1") == []
     assert pack_band_a_extra("J1") == []
+    assert pack_band_a_skip("A1") == ["constraint_ok"]
+    assert pack_band_a_skip("E1") == []
 
 
 def test_run_trial_prepare_and_grade(tmp_path: Path) -> None:

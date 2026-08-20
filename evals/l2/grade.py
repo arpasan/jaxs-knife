@@ -29,6 +29,7 @@ def grade_trial(
     truth: Optional[Mapping[str, float]] = None,
     aliases: Optional[Mapping[str, Sequence[str]]] = None,
     extra_band_a: Optional[Sequence[str]] = None,
+    skip_band_a: Optional[Sequence[str]] = None,
     idata_path: Optional[Path] = None,
     nominal: float = 0.94,
 ) -> Dict[str, Any]:
@@ -53,7 +54,7 @@ def grade_trial(
     """
     root = trial_dir.resolve()
     assert_sealed(root)
-    band_a = evaluate_band_a(root, extra=extra_band_a)
+    band_a = evaluate_band_a(root, extra=extra_band_a, skip=skip_band_a)
 
     band_b: Dict[str, Any] | None = None
     if truth:

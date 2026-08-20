@@ -19,6 +19,7 @@ from workspace import (
     Condition,
     pack_aliases,
     pack_band_a_extra,
+    pack_band_a_skip,
     pack_truth,
     prepare_workspace,
 )
@@ -131,11 +132,16 @@ def grade_replicates(workspaces: List[Path], pack_id: str) -> Dict[str, Any]:
     truth = pack_truth(pack_id)
     aliases = pack_aliases(pack_id)
     extra = pack_band_a_extra(pack_id)
+    skip = pack_band_a_skip(pack_id)
     rows: List[Dict[str, Any]] = []
     successes: List[bool] = []
     for ws in workspaces:
         report = grade_trial(
-            ws, truth=truth, aliases=aliases, extra_band_a=extra
+            ws,
+            truth=truth,
+            aliases=aliases,
+            extra_band_a=extra,
+            skip_band_a=skip,
         )
         rows.append(report)
         successes.append(bool(report["passed"]))

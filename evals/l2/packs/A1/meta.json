@@ -7,5 +7,6 @@
   },
   "aliases": {
     "prevalence": ["prevalence", "p", "infection_rate"]
-  }
+  },
+  "band_a_skip": ["constraint_ok"]
 }

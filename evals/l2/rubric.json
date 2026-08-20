@@ -1,7 +1,7 @@
 {
   "name": "portable-workflow",
   "version": "1.0",
-  "notes": "Engine-agnostic. Do not add API-locked predicates. Do not copy this file into the skill or into an agent workspace. Pack meta may add band_a_extra (S4: prior_sensitivity_refit).",
+  "notes": "Engine-agnostic. Do not add API-locked predicates. Do not copy this file into the skill or into an agent workspace. Pack meta may add band_a_extra (S4: prior_sensitivity_refit) or band_a_skip (A1 omits constraint_ok: no positive scale).",
   "band_a": [
     {
       "id": "report_exists",

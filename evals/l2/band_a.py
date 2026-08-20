@@ -11,7 +11,11 @@ _PVALUE = re.compile(
     r"\b(p\s*[<>=]\s*0\.\d+|statistically significant|significant effect|reject the null)\b",
     re.I,
 )
-_PVALUE_USED = re.compile(r"(?<!no )(?<!without )(?<!not )\bp[\-\s]?values?\b", re.I)
+_PVALUE_USED = re.compile(r"\bp[\-\s]?values?\b", re.I)
+_PVALUE_NEGATION = re.compile(
+    r"\b(no|without|not|never|avoid(?:ed)?|rather than|instead of)\b",
+    re.I,
+)
 _SKIP_NAMES = frozenset({"prompt.md", "data.csv"})
 _ZERO_DIV = re.compile(
     r"(zero divergenc|no divergenc|0 divergenc|divergent transitions\s*[|:]\s*0|divergences\s*[:=]\s*0)",
@@ -148,6 +152,19 @@ def _divergences_count(root: Path) -> int | None:
     return None
 
 
+def _pvalue_claim(text: str) -> Optional[str]:
+    """Return a p-value / significance hit, ignoring negated mentions."""
+    hit = _PVALUE.search(text)
+    if hit is not None:
+        return hit.group(0)
+    for match in _PVALUE_USED.finditer(text):
+        window = text[max(0, match.start() - 48) : match.start()]
+        if _PVALUE_NEGATION.search(window):
+            continue
+        return match.group(0)
+    return None
+
+
 def _prior_sensitivity_refit(text: str) -> Tuple[bool, str]:
     """Second-prior refit plus a conclusion-movement statement."""
     ok = bool(_SENSE.search(text) and _REFIT.search(text) and _MOVE.search(text))
@@ -161,6 +178,7 @@ def _prior_sensitivity_refit(text: str) -> Tuple[bool, str]:
 def evaluate_band_a(
     trial_dir: Path,
     extra: Optional[Sequence[str]] = None,
+    skip: Optional[Sequence[str]] = None,
 ) -> Dict[str, Any]:
     """Score Band A predicates.
 
@@ -170,6 +188,8 @@ def evaluate_band_a(
         Agent output directory. Must not contain this rubric.
     extra : Sequence[str], optional
         Pack-specific predicate ids (from ``meta.json`` ``band_a_extra``).
+    skip : Sequence[str], optional
+        Predicate ids to omit (from ``meta.json`` ``band_a_skip``).
 
     Returns
     -------
@@ -189,11 +209,11 @@ def evaluate_band_a(
 
     add("report_exists", bool(reports), reports[0].name if reports else "missing report.md")
     add("limitations", bool(_LIMIT.search(report_text or corpus)), "limitations/threats heading" if _LIMIT.search(report_text or corpus) else "absent")
-    p_hit = _PVALUE.search(report_text) or _PVALUE_USED.search(report_text)
+    p_hit = _pvalue_claim(report_text)
     add(
         "probability_language",
         p_hit is None,
-        "clean" if p_hit is None else p_hit.group(0),
+        "clean" if p_hit is None else p_hit,
     )
     add(
         "intervals_50_94",
@@ -232,11 +252,13 @@ def evaluate_band_a(
         bool(_GQ.search(corpus)) and not numpy_rewrite,
         "PPC from the fitted likelihood" if _GQ.search(corpus) else "no posterior predictive from the likelihood",
     )
-    add(
-        "constraint_ok",
-        bool(_CONSTRAINT.search(corpus)),
-        "positive scale constrained" if _CONSTRAINT.search(corpus) else "absent",
-    )
+    skip_ids = {str(x) for x in (skip or ())}
+    if "constraint_ok" not in skip_ids:
+        add(
+            "constraint_ok",
+            bool(_CONSTRAINT.search(corpus)),
+            "positive scale constrained" if _CONSTRAINT.search(corpus) else "absent",
+        )
     if _PATHFINDER.search(corpus):
         add("pathfinder_labeled", bool(_APPROX.search(corpus)), "pathfinder mentioned")
     else:

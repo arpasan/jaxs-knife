@@ -24,6 +24,8 @@ When the PPC misses the data, pick the repair from the **observed** misfit, then
 | Groups ignored | Hierarchy (non-centered if weakly identified) |
 | Mean systematically off | Likelihood family or link |
 | Mixture / labels unstable | [mixtures.md](mixtures.md) |
+| Slope attenuated; PPC still fine | Predictor measured with error ([observation.md](observation.md)) |
+| Mean off a known retention rule | Truncation / selection, not a new residual family |
 
 Do not stack three likelihood changes in one refit.
 
@@ -60,6 +62,11 @@ Requires pointwise `log_likelihood` on the InferenceData (Stan `log_lik` in GQ, 
 ## Fake-data recovery
 
 Before the real fit: simulate from the same program at known parameter values, refit, and confirm the **named estimand** falls in the **interval you will report** (50% typical + 94% range). The recovery fit must pass the same diagnose gates as a real fit. One recovery is a check that the pipeline can see the truth; it is not a coverage claim. Coverage needs repeated datasets (SBC or simulated replications).
+
+Recovery cannot bless the observation model. If the program omits
+truncation, measurement error, or an assay error rate, a successful
+recovery only shows that the wrong story is internally consistent. The
+inclusion rule is decided before this step ([observation.md](observation.md)).
 
 ## SBC
 

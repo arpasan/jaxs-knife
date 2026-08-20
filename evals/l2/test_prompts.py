@@ -11,7 +11,27 @@ FORBIDDEN = (
     "eval_metadata.json",
     "truth.json",
     "meta.json",
+    "log_mix",
+    "jacobian",
+    "non-centered",
+    "noncentered",
+    "truncated",
+    "lccdf",
+    "hierarchical",
+    "measurement error",
+    "attenuation",
+    "rogan",
+    "blackjax",
+    "generated quantities",
+    "vmap",
+    "transpile",
+    "write a jax",
+    "jax log-density",
+    "cmdstan",
+    "logdensity",
+    "log-density",
 )
+EXPECTED = {"E1", "H1", "A1", "K1", "J1"}
 
 
 def test_pack_prompts_do_not_name_the_skill() -> None:
@@ -25,17 +45,4 @@ def test_pack_prompts_do_not_name_the_skill() -> None:
 
 def test_expected_packs_exist() -> None:
     ids = {p.name for p in PACKS.iterdir() if p.is_dir()}
-    assert {
-        "S1",
-        "S2",
-        "S3",
-        "S4",
-        "S5",
-        "S6",
-        "S7",
-        "S8",
-        "M1",
-        "F1",
-        "X1",
-        "C1",
-    } <= ids
+    assert ids == EXPECTED

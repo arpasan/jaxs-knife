@@ -32,9 +32,7 @@ gitignored.
 
 ## Tasks and prompts
 
-`evals/l2/packs/` holds the twelve evaluation tasks. Each folder is named
-by a short id (S1–S8, M1, F1, X1, C1) and contains `prompt.md` and
-`data.csv`. Generating values, when recorded, live in `meta.json` and
-are not copied into an agent workspace.
-`evals/scenarios/` holds illustrative prompt stubs for a subset of the
-reporting tasks. Neither is copied into the skill.
+`evals/l2/packs/` holds the five sealed tasks (E1, H1, A1, K1, J1).
+Each folder contains `prompt.md` and `data.csv`. Generating values live
+in `meta.json` and are not copied into an agent workspace. The packs
+are not copied into the skill.

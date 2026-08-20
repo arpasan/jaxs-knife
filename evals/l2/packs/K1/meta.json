@@ -1,0 +1,15 @@
+{
+  "id": "K1",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "mu1": -1.2,
+    "mu2": 1.3,
+    "weight": 0.4
+  },
+  "aliases": {
+    "mu1": ["mu1", "mu_1", "mu[1]"],
+    "mu2": ["mu2", "mu_2", "mu[2]"],
+    "weight": ["weight", "theta", "pi", "lambda", "mix_weight"]
+  }
+}

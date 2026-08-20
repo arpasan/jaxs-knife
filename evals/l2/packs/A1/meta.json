@@ -1,0 +1,11 @@
+{
+  "id": "A1",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "prevalence": 0.1
+  },
+  "aliases": {
+    "prevalence": ["prevalence", "p", "infection_rate"]
+  }
+}

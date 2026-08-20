@@ -30,9 +30,19 @@ _REFUSE = re.compile(
     re.I,
 )
 _NETCDF = re.compile(r"(inference_data\.nc|to_netcdf|write_netcdf)", re.I)
-_GQ = re.compile(r"(generated quantities|y_rep|log_lik|jax\.vmap|vmap\()", re.I)
+_GQ = re.compile(
+    r"(generated quantities|y_rep|log_lik|jax\.vmap|vmap\(|"
+    r"posterior_predictive|sample_posterior_predictive|"
+    r"pm\.sample_posterior)",
+    re.I,
+)
 _NUMPY_LIK = re.compile(r"(numpy.*normal\(|np\.random\.normal\(.*mu|rewrite.{0,20}likelihood)", re.I)
-_CONSTRAINT = re.compile(r"(<lower\s*=|jacobian\s*\+=|jnp\.exp\(|log_abs_det)", re.I)
+_CONSTRAINT = re.compile(
+    r"(<lower\s*=|jacobian\s*\+=|jnp\.exp\(|log_abs_det|"
+    r"HalfNormal|HalfCauchy|HalfStudentT|pm\.Exponential|"
+    r"softplus)",
+    re.I,
+)
 _PATHFINDER = re.compile(r"pathfinder", re.I)
 _APPROX = re.compile(r"(approximation|warm[- ]?start|init(?:ialization)?)", re.I)
 _SENSE = re.compile(
@@ -217,8 +227,16 @@ def evaluate_band_a(
         "netcdf present" if draws_ok else "save not evidenced",
     )
     numpy_rewrite = bool(_NUMPY_LIK.search(corpus)) and not bool(_GQ.search(corpus))
-    add("gq_or_vmap", bool(_GQ.search(corpus)) and not numpy_rewrite, "GQ/vmap" if _GQ.search(corpus) else "no GQ/vmap")
-    add("constraint_ok", bool(_CONSTRAINT.search(corpus)), "constraint/jacobian" if _CONSTRAINT.search(corpus) else "absent")
+    add(
+        "gq_or_vmap",
+        bool(_GQ.search(corpus)) and not numpy_rewrite,
+        "PPC from the fitted likelihood" if _GQ.search(corpus) else "no posterior predictive from the likelihood",
+    )
+    add(
+        "constraint_ok",
+        bool(_CONSTRAINT.search(corpus)),
+        "positive scale constrained" if _CONSTRAINT.search(corpus) else "absent",
+    )
     if _PATHFINDER.search(corpus):
         add("pathfinder_labeled", bool(_APPROX.search(corpus)), "pathfinder mentioned")
     else:

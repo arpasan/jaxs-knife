@@ -1,8 +1,8 @@
 # Hierarchical Models
 
-Use when observations nest in interchangeable groups (students in schools, patients in hospitals). Time series are **not** hierarchical — timestamps are ordered.
+Use when observations nest in interchangeable groups (students in schools, patients in hospitals). Time series are **not** hierarchical — timestamps are ordered. Dependence in time belongs in an observation model with a lag, an AR term, or a state: a group index on the clock does not create partial pooling, and it ignores order.
 
-Partial pooling is the default: small groups shrink; large groups keep their estimate.
+Partial pooling is the default: small groups shrink; large groups keep their estimate. Complete pooling reports a shared mean and has no group-level scale. No pooling reports each group mean and does not shrink. If the estimand is a group mean or a group-level scale, those two shortcuts are different models, not the same model with a wider interval.
 
 ## Centered vs. non-centered
 

@@ -15,6 +15,28 @@ def test_pass_fixture_clears_band_a() -> None:
     assert report["passed"] is True, failed
 
 
+def test_pymc_style_ppc_and_halfnormal_count(tmp_path: Path) -> None:
+    trial = tmp_path / "pymc"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        "prior predictive before sampling\n"
+        "sigma = pm.HalfNormal('sigma', 1.0)\n"
+        "idata = pm.sample()\n"
+        "pm.sample_posterior_predictive(idata)\n"
+        "idata.to_netcdf('inference_data.nc')\n",
+        encoding="utf-8",
+    )
+    report = evaluate_band_a(trial)
+    by_id = {p["id"]: p["ok"] for p in report["predicates"]}
+    assert by_id["gq_or_vmap"] is True
+    assert by_id["constraint_ok"] is True
+    assert report["passed"] is True, [p for p in report["predicates"] if not p["ok"]]
+
+
 def test_fail_fixture_is_caught() -> None:
     report = evaluate_band_a(FIX / "fail_workflow")
     assert report["passed"] is False
@@ -111,7 +133,7 @@ def test_copied_skill_does_not_grade_itself() -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     junk = "# Report\n\n50% HDI and 94% HDI.\n\nR-hat 1.01.\nZero divergences.\nLimitations: toy data.\n"
     try:
-        prepare_workspace("S5", dest, condition="with")
+        prepare_workspace("E1", dest, condition="with")
         for path in list(dest.iterdir()):
             if path.name == ".cursor":
                 continue

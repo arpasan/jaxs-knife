@@ -1,0 +1,13 @@
+{
+  "id": "E1",
+  "engine": "either",
+  "copy_to_agent": ["prompt.md", "data.csv"],
+  "truth": {
+    "alpha": 0.15,
+    "beta": 1.2
+  },
+  "aliases": {
+    "alpha": ["alpha", "a", "intercept"],
+    "beta": ["beta", "b", "slope"]
+  }
+}

@@ -6,14 +6,15 @@ description: >
   Gelman–Vehtari sequence, Stan geometry (non-centered, Jacobian, generated
   quantities, diagnose), and JAX-like-Stan log-density patterns that agents skip
   unprompted. Use when writing or diagnosing .stan programs, CmdStan/CmdStanPy
-  fits, JAX logdensity_fn / BlackJAX NUTS, hierarchical or funnel geometry,
-  partial pooling, divergences, R-hat, ESS, PSIS-LOO, ELPD, stacking, prior
+  fits, JAX logdensity_fn / BlackJAX NUTS,   hierarchical or funnel geometry,
+  partial pooling, measurement error, truncation, censoring, imperfect assays,
+  divergences, R-hat, ESS, PSIS-LOO, ELPD, stacking, prior
   predictive checks, or a Bayesian report.md. Do not use for PyMC-only models,
   causal identification / DAGs /
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 # jaxs-knife
@@ -22,11 +23,11 @@ Stan when you can. JAX when you must.
 
 Every analysis follows this sequence. Do not skip criticism.
 
-1. **Formulate** — Generative story first. Driving question first. Bayes is optional if counting suffices.
-2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior.
+1. **Formulate** — Generative story first. Driving question first. Bayes is optional if counting suffices. How did a row get into the file? [references/observation.md](references/observation.md).
+2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior. Do not center on a selected slice.
 3. **Implement** — Pick an engine ([references/engines.md](references/engines.md)), then write the model.
 4. **Prior predictive** — Before MCMC. If draws are nonsense, fix priors first.
-5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Only then fit the real data.
+5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Recovery cannot bless the observation model. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
 8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too.
@@ -129,7 +130,7 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 ## Critical rules
 
 - Prior predictive **before** sampling. Prefer a `prior_only` data flag in the same program over a second, drifted copy.
-- Fake-data recovery **before** the real fit: known parameters in, named estimand in the reported interval, recovery fit clears the same gates. One run is not coverage.
+- Fake-data recovery **before** the real fit: known parameters in, named estimand in the reported interval, recovery fit clears the same gates. One run is not coverage. A recovery from the fitted program does not validate the inclusion rule.
 - Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains. Gate ESS on the interval you print.
 - Divergences: refuse to interpret. A missing `sample_stats.diverging` flag is unknown, not zero. Reparameterize, then raise `adapt_delta` / `target_accept`.
 - E-BFMI and treedepth are first-class (`cmdstan diagnose` when the fit is CmdStan).
@@ -143,6 +144,7 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 - Probability language. Never “significant” / p-values.
 - Save draws before post-processing (`inference_data.nc`).
 - Discrete latents and mixtures: [references/mixtures.md](references/mixtures.md). Label switching is not more draws.
+- Recording, truncation, censoring, measurement error, imperfect assays: [references/observation.md](references/observation.md). The observation model is part of the likelihood.
 - Use `scripts/diagnose_model.py` → `calibration_check.py` → `check_diagnostics.py`. Paste ratings into `report.md`.
 
 ## Utility scripts
@@ -164,6 +166,9 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 - **BridgeStan + BlackJAX callbacks** → Stan grads are C++, not `jit`/`gpu` of the Stan density.
 - **`np.median` on predictive probabilities** → not the posterior predictive.
 - **Off-by-one group index** → Stan is 1-based; reuse one level map for any prediction data.
+- **Selected slice, complete-data likelihood** → interval is for the retained rows, not the process. Write the inclusion rule first.
+- **`y ~ x_obs` when `x` has a reported SE** → attenuated slope, over-confident interval. The regressor is the unmarked true value.
+- **Assay calls treated as truth** → prevalence pinned to the false-positive floor. The stated error rate belongs in the likelihood.
 
 ## When things go wrong
 
@@ -177,6 +182,9 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 | Low ESS | Autocorrelation | Reparameterize; QR if `X` is collinear |
 | Treedepth saturation | Difficult geometry | Reparameterize before raising `max_treedepth` |
 | Prior pred. nonsense | Bad priors | Tighten; never `normal(0, 1000)` |
+| PPC looks fine; slope too small | Predictor is an instrument reading | Latent true `x`; measurement likelihood on the printed value |
+| PPC looks fine; mean off a cutoff | Truncation / selection | Retention probability in the likelihood, not a complete-data density |
+| Prevalence near the assay floor | Labels are calls | Put the stated error rates in the observation model |
 | PPC misses data | Misspecification | One repair from the observed misfit; then refit |
 | Pareto-k ≥ 0.7 | Influential points | Inspect; Student-t; K-fold |
 | nutpie compile fail | Toolchain / BridgeStan | CmdStanPy `sample()` fallback |

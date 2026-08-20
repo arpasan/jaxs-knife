@@ -1,9 +1,16 @@
-"""Regenerate or screen pack CSVs. Hidden truth must be recoverable."""
+"""Regenerate or screen pack CSVs. Hidden truth must be recoverable.
+
+Each writer uses a two-sided screen unless noted: a naive interval
+misses the named estimand, and a reference interval under the task's
+own observation model covers it. J1 is the exception — location-scale
+coverage is a floor check; a missing Jacobian often still covers.
+"""
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import sys
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Tuple
@@ -18,34 +25,37 @@ from band_b import hdi
 
 PACKS = Path(__file__).resolve().parent / "packs"
 Array = NDArray[np.floating]
-# Two-sided 94% Gaussian quantile (Φ^{-1}(0.97)).
 Z_94 = 1.880793608151251
 
-S4_ALPHA = 0.1
-S4_BETA = 0.7
-S4_SIGMA = 0.2
-S8_MU = 0.15
-S8_SIGMA = 0.45
-S6_ALPHA = -0.4
-S6_BETA = 1.5
-S6_LD50 = -S6_ALPHA / S6_BETA
-S7_MU1 = -1.1
-S7_MU2 = 1.4
-S7_WEIGHT = 0.4
-S7_SIGMA = 0.5
-M1_MU1 = -0.70
-M1_MU2 = 0.90
-M1_WEIGHT = 0.33
-M1_SIGMA = 0.68
-F1_MU = 0.28
-F1_TAU = 1.35
-F1_SIGMA = 1.00
-F1_NJ = 6
-X1_MU = 0.22
-X1_SIGMA = 0.52
-C1_MU = 18.0
-C1_SIGMA = 6.0
-C1_CUTOFF = 20.0
+# --------------------------------------------------
+# ---#---#--- Task constants ---#---#---
+# --------------------------------------------------
+
+E1_ALPHA = 0.15
+E1_BETA = 1.20
+E1_SIGMA = 0.28
+E1_N = 80
+
+H1_MU = 0.00
+H1_TAU = 1.60
+H1_SIGMA = 0.70
+H1_J = 8
+H1_NJ = 6
+
+A1_P = 0.10
+A1_FPR = 0.08
+A1_FNR = 0.00
+A1_N = 400
+
+K1_MU1 = -1.20
+K1_MU2 = 1.30
+K1_WEIGHT = 0.40
+K1_SIGMA = 0.45
+K1_N = 110
+
+J1_MU = 0.25
+J1_SIGMA = 0.48
+J1_N = 50
 
 
 def _z_nominal(nominal: float) -> float:
@@ -68,15 +78,13 @@ def _chi2_ppf(p: float, df: float) -> float:
         return float(df * (1.0 - 2.0 / (9.0 * df) + z * np.sqrt(2.0 / (9.0 * df))) ** 3)
 
 
-def _write_xy(path: Path, x: Array, y: Array) -> None:
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["x", "y"])
-        for xi, yi in zip(x, y):
-            writer.writerow([f"{float(xi):.6f}", f"{float(yi):.6f}"])
+# --------------------------------------------------
+# ---#---#--- I/O ---#---#---
+# --------------------------------------------------
 
 
 def _write_y(path: Path, y: Array) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["y"])
@@ -84,16 +92,46 @@ def _write_y(path: Path, y: Array) -> None:
             writer.writerow([f"{float(yi):.6f}"])
 
 
-def _read_xy(path: Path) -> Tuple[Array, Array]:
-    rows = list(csv.DictReader(path.open(encoding="utf-8")))
-    x = np.asarray([float(r["x"]) for r in rows], dtype=float)
-    y = np.asarray([float(r["y"]) for r in rows], dtype=float)
-    return x, y
+def _write_binary_y(path: Path, y: Array) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["y"])
+        for yi in y:
+            writer.writerow([int(yi)])
+
+
+def _write_eiv(path: Path, x: Array, x_se: Array, y: Array) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["x", "x_se", "y"])
+        for xi, sei, yi in zip(x, x_se, y):
+            writer.writerow(
+                [f"{float(xi):.6f}", f"{float(sei):.6f}", f"{float(yi):.6f}"]
+            )
+
+
+def _write_group_y(path: Path, group: Array, y: Array) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["group", "y"])
+        for gi, yi in zip(group, y):
+            writer.writerow([int(gi), f"{float(yi):.6f}"])
 
 
 def _read_y(path: Path) -> Array:
     rows = list(csv.DictReader(path.open(encoding="utf-8")))
     return np.asarray([float(r["y"]) for r in rows], dtype=float)
+
+
+def _read_eiv(path: Path) -> Tuple[Array, Array, Array]:
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    x = np.asarray([float(r["x"]) for r in rows], dtype=float)
+    x_se = np.asarray([float(r["x_se"]) for r in rows], dtype=float)
+    y = np.asarray([float(r["y"]) for r in rows], dtype=float)
+    return x, x_se, y
 
 
 def _read_group_y(path: Path) -> Tuple[Array, Array]:
@@ -103,39 +141,45 @@ def _read_group_y(path: Path) -> Tuple[Array, Array]:
     return group, y
 
 
-def _erfc(z: Array) -> Array:
-    """Vector error-function complement. SciPy if present."""
-    try:
-        from scipy.special import erfc
+def _reject_until(
+    factory: Callable[[np.random.Generator], Tuple[Array, ...]],
+    ok: Callable[..., bool],
+    seed_prefix: str,
+    max_tries: int = 400,
+) -> Tuple[Array, ...]:
+    for i in range(max_tries):
+        rng = np.random.default_rng(sum(map(ord, f"{seed_prefix}-try{i}")))
+        draws = factory(rng)
+        if ok(*draws):
+            return draws
+    raise RuntimeError(f"no recoverable draw for {seed_prefix}")
 
-        return np.asarray(erfc(z), dtype=float)
-    except Exception:
-        from math import erfc as math_erfc
 
-        z_arr = np.asarray(z, dtype=float)
-        return np.vectorize(lambda x: float(math_erfc(float(x))), otypes=[float])(z_arr)
+# --------------------------------------------------
+# ---#---#--- Shared interval helpers ---#---#---
+# --------------------------------------------------
 
 
-def _ols_covers(
+def _ols_beta_covers(
     x: Array,
     y: Array,
-    *,
-    alpha: float,
     beta: float,
+    *,
     nominal: float = 0.94,
 ) -> bool:
-    """True when a normal-approx interval contains both slope truths."""
+    """True when a normal-approx OLS interval contains the slope."""
     design = np.column_stack([np.ones(len(x)), x])
     hat, *_ = np.linalg.lstsq(design, y, rcond=None)
     resid = y - design @ hat
     n, p = design.shape
     cov = (resid.dot(resid) / (n - p)) * np.linalg.inv(design.T @ design)
-    se = np.sqrt(np.diag(cov))
-    z = _z_nominal(nominal)
-    return bool(
-        abs(float(hat[0]) - alpha) <= z * float(se[0])
-        and abs(float(hat[1]) - beta) <= z * float(se[1])
-    )
+    se = float(np.sqrt(cov[1, 1]))
+    return bool(abs(float(hat[1]) - beta) <= _z_nominal(nominal) * se)
+
+
+def _mean_covers(y: Array, truth: float, nominal: float = 0.94) -> bool:
+    se = float(y.std(ddof=1) / np.sqrt(len(y)))
+    return bool(abs(float(y.mean()) - truth) <= _z_nominal(nominal) * se)
 
 
 def _sigma_chi2_covers(
@@ -152,21 +196,6 @@ def _sigma_chi2_covers(
     lo = float(np.sqrt(df * s2 / _chi2_ppf(1.0 - tail, float(df))))
     hi = float(np.sqrt(df * s2 / _chi2_ppf(tail, float(df))))
     return lo <= truth <= hi
-
-
-def _s4_covers(x: Array, y: Array) -> bool:
-    design = np.column_stack([np.ones(len(x)), x])
-    hat, *_ = np.linalg.lstsq(design, y, rcond=None)
-    resid = y - design @ hat
-    df = int(len(y) - design.shape[1])
-    return _ols_covers(x, y, alpha=S4_ALPHA, beta=S4_BETA) and _sigma_chi2_covers(
-        resid, df, S4_SIGMA
-    )
-
-
-def _mean_covers(y: Array, truth: float, nominal: float = 0.94) -> bool:
-    se = float(y.std(ddof=1) / np.sqrt(len(y)))
-    return bool(abs(float(y.mean()) - truth) <= _z_nominal(nominal) * se)
 
 
 def _normal_exp_reference_covers(
@@ -207,117 +236,301 @@ def _normal_exp_reference_covers(
     return True
 
 
-def _s8_covers(y: Array) -> bool:
-    return (
-        _mean_covers(y, S8_MU)
-        and _sigma_chi2_covers(y - float(y.mean()), len(y) - 1, S8_SIGMA)
-        and _normal_exp_reference_covers(y, {"mu": S8_MU, "sigma": S8_SIGMA})
+def _hdi_from_grid(logp: Array, coords: Tuple[Array, ...], n_draw: int) -> List[Array]:
+    """Draw from a normalized grid and return one array per axis."""
+    logp = np.asarray(logp, dtype=float)
+    logp = logp - float(logp.max())
+    weight = np.exp(logp)
+    weight /= float(weight.sum())
+    rng = np.random.default_rng(0)
+    flat = weight.ravel()
+    idx = rng.choice(flat.size, size=n_draw, p=flat)
+    out: List[Array] = []
+    remainder = idx
+    for axis, coord in enumerate(coords):
+        stride = 1
+        for later in coords[axis + 1 :]:
+            stride *= int(later.size)
+        take = remainder // stride
+        remainder = remainder % stride
+        out.append(coord[take])
+    return out
+
+
+# ==================================================
+# E1 — errors in the predictor
+# ==================================================
+
+
+def _eiv_latent_moments(x_obs: Array, x_se: Array) -> Tuple[float, float]:
+    """Mean and variance of unmarked x from the instrument columns only.
+
+    A solver estimates these. Do not pin them at generating values.
+    """
+    x_obs = np.asarray(x_obs, dtype=float)
+    x_se = np.asarray(x_se, dtype=float)
+    mu_x = float(x_obs.mean())
+    var_obs = float(x_obs.var(ddof=1)) if x_obs.size > 1 else 0.0
+    mean_se2 = float(np.mean(np.square(x_se)))
+    var_x = max(var_obs - mean_se2, 1e-4)
+    return mu_x, var_x
+
+
+def _eiv_reference_covers(
+    x_obs: Array,
+    x_se: Array,
+    y: Array,
+    truth: Mapping[str, float],
+    *,
+    nominal: float = 0.94,
+) -> bool:
+    """Grid posterior with latent-x mean and variance estimated from the file."""
+    x_obs = np.asarray(x_obs, dtype=float)
+    x_se = np.asarray(x_se, dtype=float)
+    y = np.asarray(y, dtype=float)
+    alphas = np.linspace(-1.2, 1.6, 71)
+    betas = np.linspace(-0.1, 2.5, 81)
+    sigmas = np.linspace(0.10, 1.05, 45)
+    mu_x, var_x = _eiv_latent_moments(x_obs, x_se)
+    var_xo = var_x + x_se**2
+    dx = x_obs - mu_x
+    dx2 = dx**2
+    two_pi = 2.0 * np.pi
+    logp = np.empty((alphas.size, betas.size, sigmas.size), dtype=float)
+    for ib, beta in enumerate(betas):
+        cov = beta * var_x
+        my0 = beta * mu_x
+        for is_, sigma in enumerate(sigmas):
+            var_y = beta * beta * var_x + sigma * sigma
+            det = np.clip(var_y * var_xo - cov * cov, 1e-12, None)
+            dy = y[None, :] - alphas[:, None] - my0
+            quad = (var_xo * dy**2 - 2.0 * cov * dy * dx + var_y * dx2) / det
+            ll = -np.log(two_pi) - 0.5 * np.log(det) - 0.5 * quad
+            logp[:, ib, is_] = (
+                ll.sum(axis=1)
+                - 0.5 * (alphas / 2.5) ** 2
+                - 0.5 * (beta / 2.5) ** 2
+                - sigma
+            )
+    a_s, b_s, _s_s = _hdi_from_grid(logp, (alphas, betas, sigmas), 8000)
+    for name, draws in (("alpha", a_s), ("beta", b_s)):
+        lo, hi = hdi(np.asarray(draws, dtype=float), nominal)
+        if not (lo <= float(truth[name]) <= hi):
+            return False
+    return True
+
+
+def _e1_covers(x: Array, x_se: Array, y: Array) -> bool:
+    """OLS on printed x misses beta; latent-x grid covers alpha and beta."""
+    if _ols_beta_covers(x, y, E1_BETA):
+        return False
+    return _eiv_reference_covers(
+        x, x_se, y, {"alpha": E1_ALPHA, "beta": E1_BETA}
     )
 
 
-def _reject_until(
-    factory: Callable[[np.random.Generator], Tuple[Array, ...]],
-    ok: Callable[..., bool],
-    seed_prefix: str,
-    max_tries: int = 400,
-) -> Tuple[Array, ...]:
-    for i in range(max_tries):
-        rng = np.random.default_rng(sum(map(ord, f"{seed_prefix}-try{i}")))
-        draws = factory(rng)
-        if ok(*draws):
-            return draws
-    raise RuntimeError(f"no recoverable draw for {seed_prefix}")
-
-
-def write_s4() -> Path:
-    def factory(rng: np.random.Generator) -> Tuple[Array, Array]:
-        x = np.linspace(-1.2, 1.2, 20)
-        y = S4_ALPHA + S4_BETA * x + rng.normal(0.0, S4_SIGMA, size=20)
-        return x, y
-
-    x, y = _reject_until(factory, _s4_covers, "s4-psense-v3")
-    path = PACKS / "S4" / "data.csv"
-    _write_xy(path, x, y)
-    return path
-
-
-def write_s8() -> Path:
-    def factory(rng: np.random.Generator) -> Tuple[Array]:
-        return (rng.normal(S8_MU, S8_SIGMA, size=30),)
-
-    (y,) = _reject_until(factory, _s8_covers, "s8-jax-v3")
-    path = PACKS / "S8" / "data.csv"
-    _write_y(path, y)
-    return path
-
-
-def _logit_irls(
-    dose: Array,
-    n_trials: Array,
-    deaths: Array,
-) -> Tuple[Array, Array] | None:
-    """Grouped-binomial logistic MLE and covariance, or None if singular."""
-    design = np.column_stack([np.ones(len(dose)), dose])
-    beta = np.zeros(2)
-    for _ in range(25):
-        eta = design @ beta
-        prob = 1.0 / (1.0 + np.exp(-np.clip(eta, -20.0, 20.0)))
-        prob = np.clip(prob, 1e-6, 1.0 - 1e-6)
-        weight = n_trials * prob * (1.0 - prob)
-        working = eta + (deaths / n_trials - prob) / (prob * (1.0 - prob))
-        xtw = design.T * weight
-        try:
-            nxt = np.linalg.solve(xtw @ design, xtw @ working)
-        except np.linalg.LinAlgError:
-            return None
-        if float(np.max(np.abs(nxt - beta))) < 1e-8:
-            beta = nxt
-            break
-        beta = nxt
-    eta = design @ beta
-    prob = 1.0 / (1.0 + np.exp(-np.clip(eta, -20.0, 20.0)))
-    prob = np.clip(prob, 1e-6, 1.0 - 1e-6)
-    weight = n_trials * prob * (1.0 - prob)
-    try:
-        cov = np.linalg.inv((design.T * weight) @ design)
-    except np.linalg.LinAlgError:
-        return None
-    return beta, cov
-
-
-def _bioassay_covers(dose: Array, n_trials: Array, deaths: Array) -> bool:
-    fit = _logit_irls(dose, n_trials, deaths)
-    if fit is None:
-        return False
-    hat, cov = fit
-    z = _z_nominal(0.94)
-    if abs(float(hat[1]) - S6_BETA) > z * float(np.sqrt(cov[1, 1])):
-        return False
-    ld50 = -float(hat[0]) / float(hat[1])
-    grad = np.array([-1.0 / float(hat[1]), float(hat[0]) / float(hat[1]) ** 2])
-    se_ld = float(np.sqrt(grad @ cov @ grad))
-    return abs(ld50 - S6_LD50) <= z * se_ld
-
-
-def write_s6() -> Path:
-    n_each = 24
-    doses = np.linspace(-1.2, 1.2, 6)
-
+def write_e1() -> Path:
     def factory(rng: np.random.Generator) -> Tuple[Array, Array, Array]:
-        eta = S6_ALPHA + S6_BETA * doses
-        prob = 1.0 / (1.0 + np.exp(-eta))
-        deaths = rng.binomial(n_each, prob)
-        return doses, np.full(len(doses), n_each, dtype=float), deaths.astype(float)
+        x_true = rng.normal(0.0, 1.0, size=E1_N)
+        x_se = rng.uniform(0.55, 0.85, size=E1_N)
+        x_obs = x_true + rng.normal(0.0, x_se)
+        y = E1_ALPHA + E1_BETA * x_true + rng.normal(0.0, E1_SIGMA, size=E1_N)
+        return x_obs, x_se, y
 
-    dose, n_trials, deaths = _reject_until(factory, _bioassay_covers, "s6-bioassay-v1")
-    path = PACKS / "S6" / "data.csv"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["dose", "n", "y"])
-        for xi, ni, yi in zip(dose, n_trials, deaths):
-            writer.writerow([f"{float(xi):.6f}", int(ni), int(yi)])
+    x, x_se, y = _reject_until(factory, _e1_covers, "e1-eiv-v2")
+    path = PACKS / "E1" / "data.csv"
+    _write_eiv(path, x, x_se, y)
     return path
+
+
+def check_e1() -> bool:
+    path = PACKS / "E1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _e1_covers(*_read_eiv(path))
+
+
+# ==================================================
+# H1 — grouped observations
+# ==================================================
+
+
+def _hier_reference_covers(
+    group: Array,
+    y: Array,
+    truth: Mapping[str, float],
+    *,
+    nominal: float = 0.94,
+) -> bool:
+    """Bootstrap MOM + simple shrinkage for mu, tau, theta1."""
+    group = np.asarray(group, dtype=int)
+    y = np.asarray(y, dtype=float)
+    groups = np.unique(group)
+    if int(groups[0]) != 1:
+        return False
+    rng = np.random.default_rng(0)
+    n_boot = 120
+    mus = np.empty(n_boot)
+    taus = np.empty(n_boot)
+    t1s = np.empty(n_boot)
+    for i in range(n_boot):
+        bars: List[float] = []
+        within_num = 0.0
+        within_df = 0
+        n1 = 0
+        for g in groups:
+            yg = y[group == g]
+            samp = rng.choice(yg, size=len(yg), replace=True)
+            bars.append(float(samp.mean()))
+            within_num += float(np.sum((samp - samp.mean()) ** 2))
+            within_df += int(len(samp) - 1)
+            if int(g) == 1:
+                n1 = int(len(samp))
+        bars_a = np.asarray(bars, dtype=float)
+        mu = float(bars_a.mean())
+        within = within_num / max(within_df, 1)
+        between = float(bars_a.var(ddof=1))
+        tau2 = max(between - within / float(H1_NJ), 1e-8)
+        se2 = within / max(n1, 1)
+        weight = tau2 / (tau2 + se2)
+        mus[i] = mu
+        taus[i] = float(np.sqrt(tau2))
+        t1s[i] = weight * bars_a[0] + (1.0 - weight) * mu
+    draws_by = {"mu": mus, "tau": taus, "theta1": t1s}
+    for key, value in truth.items():
+        if key not in draws_by:
+            return False
+        lo, hi = hdi(np.asarray(draws_by[key], dtype=float), nominal)
+        if not (lo <= float(value) <= hi):
+            return False
+    return True
+
+
+def _h1_truth() -> Dict[str, float]:
+    meta_path = PACKS / "H1" / "meta.json"
+    if not meta_path.is_file():
+        return {"mu": H1_MU, "tau": H1_TAU}
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    raw = dict(meta.get("truth") or {})
+    return {str(k): float(v) for k, v in raw.items()}
+
+
+def _h1_covers(group: Array, y: Array, theta1: float) -> bool:
+    """Complete-pool interval misses theta1; hierarchical reference covers."""
+    if _mean_covers(y, theta1):
+        return False
+    return _hier_reference_covers(
+        group, y, {"mu": H1_MU, "tau": H1_TAU, "theta1": theta1}
+    )
+
+
+def write_h1() -> Path:
+    def factory(rng: np.random.Generator) -> Tuple[Array, Array, Array]:
+        theta = rng.normal(H1_MU, H1_TAU, size=H1_J)
+        order = np.argsort(-np.abs(theta))
+        theta = theta[order]
+        group = np.repeat(np.arange(1, H1_J + 1), H1_NJ).astype(float)
+        y = np.empty(H1_J * H1_NJ)
+        for j in range(H1_J):
+            sl = slice(j * H1_NJ, (j + 1) * H1_NJ)
+            y[sl] = theta[j] + rng.normal(0.0, H1_SIGMA, size=H1_NJ)
+        return group, y, theta
+
+    def ok(group: Array, y: Array, theta: Array) -> bool:
+        return _h1_covers(group, y, float(theta[0]))
+
+    group, y, theta = _reject_until(factory, ok, "h1-group-v2")
+    path = PACKS / "H1" / "data.csv"
+    _write_group_y(path, group, y)
+    meta_path = PACKS / "H1" / "meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["truth"] = {
+        "mu": H1_MU,
+        "tau": H1_TAU,
+        "theta1": round(float(theta[0]), 6),
+    }
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def check_h1() -> bool:
+    path = PACKS / "H1" / "data.csv"
+    if not path.is_file():
+        return False
+    truth = _h1_truth()
+    if "theta1" not in truth:
+        return False
+    return _h1_covers(*_read_group_y(path), float(truth["theta1"]))
+
+
+# ==================================================
+# A1 — imperfect assay
+# ==================================================
+
+
+def _naive_prop_covers(y: Array, truth: float, nominal: float = 0.94) -> bool:
+    n = int(y.size)
+    phat = float(y.mean())
+    se = float(np.sqrt(max(phat * (1.0 - phat), 1e-12) / n))
+    return bool(abs(phat - truth) <= _z_nominal(nominal) * se)
+
+
+def _assay_reference_covers(
+    y: Array,
+    truth: float,
+    *,
+    fpr: float = A1_FPR,
+    fnr: float = A1_FNR,
+    nominal: float = 0.94,
+) -> bool:
+    """Grid posterior for prevalence given a stated false-positive rate."""
+    y = np.asarray(y, dtype=float)
+    n = int(y.size)
+    k = float(y.sum())
+    ps = np.linspace(1e-4, 0.80, 401)
+    p_obs = ps * (1.0 - fnr) + (1.0 - ps) * fpr
+    p_obs = np.clip(p_obs, 1e-8, 1.0 - 1e-8)
+    logp = (
+        k * np.log(p_obs)
+        + (n - k) * np.log(1.0 - p_obs)
+        + np.log(ps)
+        + np.log(1.0 - ps)
+    )
+    (draws,) = _hdi_from_grid(logp, (ps,), 6000)
+    lo, hi = hdi(np.asarray(draws, dtype=float), nominal)
+    return bool(lo <= truth <= hi)
+
+
+def _a1_covers(y: Array) -> bool:
+    """Naive binomial interval misses prevalence; assay-corrected grid covers."""
+    if _naive_prop_covers(y, A1_P):
+        return False
+    return _assay_reference_covers(y, A1_P)
+
+
+def write_a1() -> Path:
+    def factory(rng: np.random.Generator) -> Tuple[Array]:
+        z = rng.random(A1_N) < A1_P
+        p_call = np.where(z, 1.0 - A1_FNR, A1_FPR)
+        y = (rng.random(A1_N) < p_call).astype(float)
+        return (y,)
+
+    (y,) = _reject_until(factory, _a1_covers, "a1-assay-v1")
+    path = PACKS / "A1" / "data.csv"
+    _write_binary_y(path, y)
+    return path
+
+
+def check_a1() -> bool:
+    path = PACKS / "A1" / "data.csv"
+    if not path.is_file():
+        return False
+    return _a1_covers(_read_y(path))
+
+
+# ==================================================
+# K1 — two-component sample
+# ==================================================
 
 
 def _em_two_normal(y: Array) -> Tuple[float, float, float]:
@@ -347,12 +560,15 @@ def _em_two_normal(y: Array) -> Tuple[float, float, float]:
     return weight, mu1, mu2
 
 
-def _s7_covers(y: Array) -> bool:
+def _k1_covers(y: Array) -> bool:
+    """Single-normal mean misses both locations; EM bootstrap covers all three."""
+    if _mean_covers(y, K1_MU1) or _mean_covers(y, K1_MU2):
+        return False
     weight, mu1, mu2 = _em_two_normal(y)
     if not (
-        abs(mu1 - S7_MU1) < 0.35
-        and abs(mu2 - S7_MU2) < 0.35
-        and abs(weight - S7_WEIGHT) < 0.12
+        abs(mu1 - K1_MU1) < 0.40
+        and abs(mu2 - K1_MU2) < 0.40
+        and abs(weight - K1_WEIGHT) < 0.14
     ):
         return False
     rng = np.random.default_rng(0)
@@ -361,9 +577,9 @@ def _s7_covers(y: Array) -> bool:
         samp = rng.choice(y, size=len(y), replace=True)
         boots[i] = _em_two_normal(samp)
     checks = (
-        (boots[:, 0], S7_WEIGHT),
-        (boots[:, 1], S7_MU1),
-        (boots[:, 2], S7_MU2),
+        (boots[:, 0], K1_WEIGHT),
+        (boots[:, 1], K1_MU1),
+        (boots[:, 2], K1_MU2),
     )
     for draws, truth in checks:
         lo, hi = hdi(draws, 0.94)
@@ -372,221 +588,84 @@ def _s7_covers(y: Array) -> bool:
     return True
 
 
-def write_s7() -> Path:
+def write_k1() -> Path:
     def factory(rng: np.random.Generator) -> Tuple[Array]:
-        n = 90
-        z = rng.random(n) < S7_WEIGHT
-        y = np.empty(n)
-        y[z] = rng.normal(S7_MU1, S7_SIGMA, size=int(z.sum()))
-        y[~z] = rng.normal(S7_MU2, S7_SIGMA, size=int((~z).sum()))
+        z = rng.random(K1_N) < K1_WEIGHT
+        y = np.empty(K1_N)
+        y[z] = rng.normal(K1_MU1, K1_SIGMA, size=int(z.sum()))
+        y[~z] = rng.normal(K1_MU2, K1_SIGMA, size=int((~z).sum()))
         return (y,)
 
-    (y,) = _reject_until(factory, _s7_covers, "s7-mixture-v2")
-    path = PACKS / "S7" / "data.csv"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    (y,) = _reject_until(factory, _k1_covers, "k1-two-comp-v1")
+    path = PACKS / "K1" / "data.csv"
     _write_y(path, y)
     return path
 
 
-def _read_s6(path: Path) -> Tuple[Array, Array, Array]:
-    rows = list(csv.DictReader(path.open(encoding="utf-8")))
-    dose = np.asarray([float(r["dose"]) for r in rows], dtype=float)
-    n_trials = np.asarray([float(r["n"]) for r in rows], dtype=float)
-    deaths = np.asarray([float(r["y"]) for r in rows], dtype=float)
-    return dose, n_trials, deaths
-
-
-def check_s4() -> bool:
-    path = PACKS / "S4" / "data.csv"
+def check_k1() -> bool:
+    path = PACKS / "K1" / "data.csv"
     if not path.is_file():
         return False
-    x, y = _read_xy(path)
-    return _s4_covers(x, y)
+    return _k1_covers(_read_y(path))
 
 
-def check_s8() -> bool:
-    path = PACKS / "S8" / "data.csv"
-    if not path.is_file():
-        return False
-    return _s8_covers(_read_y(path))
+# ==================================================
+# J1 — location-scale (coverage is a floor)
+# ==================================================
 
 
-def check_s6() -> bool:
-    path = PACKS / "S6" / "data.csv"
-    if not path.is_file():
-        return False
-    return _bioassay_covers(*_read_s6(path))
-
-
-def check_s7() -> bool:
-    path = PACKS / "S7" / "data.csv"
-    if not path.is_file():
-        return False
-    return _s7_covers(_read_y(path))
-
-
-# --------------------------------------------------
-# ---#---#--- Science-suite screens ---#---#---
-# --------------------------------------------------
-
-
-def _m1_covers(y: Array) -> bool:
-    weight, mu1, mu2 = _em_two_normal(y)
-    if not (
-        abs(mu1 - M1_MU1) < 0.40
-        and abs(mu2 - M1_MU2) < 0.40
-        and abs(weight - M1_WEIGHT) < 0.14
-    ):
-        return False
-    rng = np.random.default_rng(0)
-    boots = np.empty((80, 3), dtype=float)
-    for i in range(80):
-        samp = rng.choice(y, size=len(y), replace=True)
-        boots[i] = _em_two_normal(samp)
-    checks = (
-        (boots[:, 0], M1_WEIGHT),
-        (boots[:, 1], M1_MU1),
-        (boots[:, 2], M1_MU2),
-    )
-    for draws, truth in checks:
-        lo, hi = hdi(draws, 0.94)
-        if not (lo <= truth <= hi):
-            return False
-    return True
-
-
-def _f1_covers(group: Array, y: Array) -> bool:
-    groups = np.unique(group.astype(int))
-    resid_parts: List[Array] = []
-    for g in groups:
-        yg = y[group == g]
-        resid_parts.append(yg - float(yg.mean()))
-    resid = np.concatenate(resid_parts)
-    if not _mean_covers(y, F1_MU):
-        return False
-    if not _sigma_chi2_covers(resid, int(len(y) - len(groups)), F1_SIGMA):
-        return False
-    rng = np.random.default_rng(0)
-    boots = np.empty(80, dtype=float)
-    for i in range(80):
-        bars = []
-        for g in groups:
-            yg = y[group == g]
-            bars.append(float(rng.choice(yg, size=len(yg), replace=True).mean()))
-        between = float(np.asarray(bars, dtype=float).var(ddof=1))
-        tau2 = max(between - (F1_SIGMA**2) / F1_NJ, 1e-8)
-        boots[i] = float(np.sqrt(tau2))
-    lo, hi = hdi(boots, 0.94)
-    return bool(lo <= F1_TAU <= hi)
-
-
-def _x1_covers(y: Array) -> bool:
+def _j1_covers(y: Array) -> bool:
     return (
-        _mean_covers(y, X1_MU)
-        and _sigma_chi2_covers(y - float(y.mean()), len(y) - 1, X1_SIGMA)
-        and _normal_exp_reference_covers(y, {"mu": X1_MU, "sigma": X1_SIGMA})
+        _mean_covers(y, J1_MU)
+        and _sigma_chi2_covers(y - float(y.mean()), len(y) - 1, J1_SIGMA)
+        and _normal_exp_reference_covers(y, {"mu": J1_MU, "sigma": J1_SIGMA})
     )
 
 
-def _truncated_normal_grid_covers(
-    y: Array,
-    truth: Mapping[str, float],
-    *,
-    cutoff: float = C1_CUTOFF,
-    nominal: float = 0.94,
-) -> bool:
-    """Grid posterior for left-truncated normal observations."""
-    y = np.asarray(y, dtype=float)
-    n = int(y.size)
-    mus = np.linspace(0.0, 28.0, 201)
-    sigmas = np.linspace(1.5, 16.0, 201)
-    y2 = float(np.dot(y, y))
-    ysum = float(y.sum())
-    logp = np.empty((mus.size, sigmas.size), dtype=float)
-    for i, mu in enumerate(mus):
-        sse = y2 - 2.0 * mu * ysum + n * mu * mu
-        zcut = (cutoff - mu) / sigmas
-        lccdf = np.log(np.clip(0.5 * _erfc(zcut / np.sqrt(2.0)), 1e-300, 1.0))
-        logp[i] = (
-            -n * np.log(sigmas)
-            - 0.5 * sse / (sigmas**2)
-            - n * lccdf
-            - 0.5 * ((mu - 20.0) / 12.0) ** 2
-            - sigmas / 6.0
-        )
-    logp -= float(logp.max())
-    weight = np.exp(logp)
-    weight /= float(weight.sum())
-    rng = np.random.default_rng(0)
-    flat = weight.ravel()
-    idx = rng.choice(flat.size, size=8000, p=flat)
-    mu_s = mus[idx // sigmas.size]
-    sig_s = sigmas[idx % sigmas.size]
-    for name, draws in (("mu", mu_s), ("sigma", sig_s)):
-        lo, hi = hdi(np.asarray(draws, dtype=float), nominal)
-        if not (lo <= float(truth[name]) <= hi):
-            return False
-    return True
+def write_j1() -> Path:
+    def factory(rng: np.random.Generator) -> Tuple[Array]:
+        return (rng.normal(J1_MU, J1_SIGMA, size=J1_N),)
+
+    (y,) = _reject_until(factory, _j1_covers, "j1-jax-v1")
+    path = PACKS / "J1" / "data.csv"
+    _write_y(path, y)
+    return path
 
 
-def _c1_covers(y: Array) -> bool:
-    """Naive normal misses μ; truncated-normal grid covers μ and σ."""
-    if float(y.min()) < C1_CUTOFF:
-        return False
-    if _mean_covers(y, C1_MU):
-        return False
-    return _truncated_normal_grid_covers(y, {"mu": C1_MU, "sigma": C1_SIGMA})
-
-
-def check_m1() -> bool:
-    path = PACKS / "M1" / "data.csv"
+def check_j1() -> bool:
+    path = PACKS / "J1" / "data.csv"
     if not path.is_file():
         return False
-    return _m1_covers(_read_y(path))
+    return _j1_covers(_read_y(path))
 
 
-def check_f1() -> bool:
-    path = PACKS / "F1" / "data.csv"
-    if not path.is_file():
-        return False
-    return _f1_covers(*_read_group_y(path))
-
-
-def check_x1() -> bool:
-    path = PACKS / "X1" / "data.csv"
-    if not path.is_file():
-        return False
-    return _x1_covers(_read_y(path))
-
-
-def check_c1() -> bool:
-    path = PACKS / "C1" / "data.csv"
-    if not path.is_file():
-        return False
-    return _c1_covers(_read_y(path))
-
+# --------------------------------------------------
+# ---#---#--- CLI ---#---#---
+# --------------------------------------------------
 
 CHECKERS: Dict[str, Callable[[], bool]] = {
-    "S4": check_s4,
-    "S8": check_s8,
-    "S6": check_s6,
-    "S7": check_s7,
-    "M1": check_m1,
-    "F1": check_f1,
-    "X1": check_x1,
-    "C1": check_c1,
+    "E1": check_e1,
+    "H1": check_h1,
+    "A1": check_a1,
+    "K1": check_k1,
+    "J1": check_j1,
 }
 WRITERS: Dict[str, Callable[[], Path]] = {
-    "S4": write_s4,
-    "S8": write_s8,
-    "S6": write_s6,
-    "S7": write_s7,
+    "E1": write_e1,
+    "H1": write_h1,
+    "A1": write_a1,
+    "K1": write_k1,
+    "J1": write_j1,
 }
 
 
 def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--packs", nargs="+", default=["S4", "S8", "S6", "S7"])
+    parser.add_argument(
+        "--packs",
+        nargs="+",
+        default=["E1", "H1", "A1", "K1", "J1"],
+    )
     parser.add_argument(
         "--check",
         action="store_true",

@@ -16,6 +16,9 @@ DEFAULT_ALIASES: Dict[str, tuple[str, ...]] = {
     "beta": ("beta", "b", "slope"),
     "sigma": ("sigma", "sig", "scale"),
     "mu": ("mu", "mean"),
+    "tau": ("tau", "sigma_group", "sd_group", "group_sd"),
+    "theta1": ("theta1", "theta_1", "theta[1]"),
+    "prevalence": ("prevalence", "p", "infection_rate"),
 }
 
 
@@ -107,14 +110,19 @@ def _vector_component(
     post: Any,
     canonical: str,
 ) -> Optional[NDArray[np.floating]]:
-    """Map ``mu1`` / ``mu2`` onto a length-2 ``mu`` (ordered constraint)."""
-    if canonical not in {"mu1", "mu2"}:
+    """Map ``mu1`` / ``mu2`` / ``theta1`` onto a trailing vector axis."""
+    if canonical in {"mu1", "mu2"}:
+        arr = _get_values(post, "mu")
+        if arr is None or arr.ndim < 1 or arr.shape[-1] != 2:
+            return None
+        idx = 0 if canonical == "mu1" else 1
+        return arr[..., idx]
+    if canonical != "theta1":
         return None
-    arr = _get_values(post, "mu")
-    if arr is None or arr.ndim < 1 or arr.shape[-1] != 2:
+    arr = _get_values(post, "theta")
+    if arr is None or arr.ndim < 1 or arr.shape[-1] < 1:
         return None
-    idx = 0 if canonical == "mu1" else 1
-    return arr[..., idx]
+    return arr[..., 0]
 
 
 def posterior_from_idata(

@@ -1,0 +1,29 @@
+{
+  "id": "H1",
+  "engine": "either",
+  "copy_to_agent": [
+    "prompt.md",
+    "data.csv"
+  ],
+  "truth": {
+    "mu": 0.0,
+    "tau": 1.6,
+    "theta1": -2.600767
+  },
+  "aliases": {
+    "mu": [
+      "mu",
+      "mean"
+    ],
+    "tau": [
+      "tau",
+      "sigma_group",
+      "sd_group"
+    ],
+    "theta1": [
+      "theta1",
+      "theta_1",
+      "theta[1]"
+    ]
+  }
+}

@@ -36,7 +36,7 @@ def test_emit_cell_passk_and_failed_ids() -> None:
         ],
     }
     payload = emit_cell(
-        pack="S6",
+        pack="E1",
         condition="without",
         model="test-model",
         git="deadbeef",

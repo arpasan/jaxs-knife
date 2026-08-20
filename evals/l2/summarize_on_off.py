@@ -13,38 +13,26 @@ from passk import pass_at_k
 L2_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = L2_ROOT.parents[1]
 PUBLIC_PATH = L2_ROOT / "results" / "on_off.json"
-DEFAULT_CELL_DIR = REPO_ROOT / ".local" / "i-skill-on-off"
-STANDARD_IDS: Tuple[str, ...] = ("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8")
-ADDITIONAL_IDS: Tuple[str, ...] = ("M1", "F1", "X1", "C1")
-HOMEWORK_IDS = STANDARD_IDS
-SCIENCE_IDS = ADDITIONAL_IDS
+DEFAULT_CELL_DIR = REPO_ROOT / ".local" / "test"
+TASK_IDS: Tuple[str, ...] = ("E1", "H1", "A1", "K1", "J1")
 TASK_LABELS: Dict[str, str] = {
-    "S1": "linear regression",
-    "S2": "hierarchical school effects",
-    "S3": "overdispersed counts",
-    "S4": "linear regression with prior sensitivity",
-    "S5": "positive scale (constraint or Jacobian)",
-    "S6": "binomial dose-response",
-    "S7": "two-component mixture",
-    "S8": "JAX log-density",
-    "M1": "two-component mixture",
-    "F1": "grouped hierarchical",
-    "X1": "JAX location-scale",
-    "C1": "recordings that omit values below a threshold",
+    "E1": "predictor with a reported instrument error",
+    "H1": "grouped observations",
+    "A1": "assay with a stated false-positive rate",
+    "K1": "two-component sample",
+    "J1": "location-scale sample",
 }
-SUITE_LABELS: Dict[str, str] = {
-    "standard": "Eight reporting tasks",
-    "additional": "Four science tasks",
-}
+SUITE_LABEL = "Five sealed tasks"
+MODELS: Tuple[str, ...] = ("grok-4.6", "opus-5")
+ATTEMPTS_PER_CELL = 2
 COVERAGE_NOTE = (
-    "scored only on tasks that record generating values; each such "
-    "task's data was accepted only if a reference interval under its "
-    "own priors covered them"
+    "scored on every task; four tasks accept a CSV only when a naive "
+    "interval misses the named estimand and a reference interval under "
+    "the task's observation model covers it; J1 is a floor check"
 )
 PASS_DEFINITION = (
     "an attempt passes when every workflow-checklist predicate holds "
-    "and, when the task records generating values, the reported 94% "
-    "interval contains each of them"
+    "and the reported 94% interval contains each recorded generating value"
 )
 REQUIRED_SUITE_KEYS = (
     "label",
@@ -57,13 +45,20 @@ REQUIRED_SUITE_KEYS = (
     "coverage_note",
     "tasks",
 )
-REQUIRED_TOP_KEYS = (
+REQUIRED_COMPLETE_KEYS = (
+    "status",
     "date",
     "eval_commit",
     "attempts_per_cell",
     "pass_definition",
-    "standard",
-    "additional",
+    "task_ids",
+    *REQUIRED_SUITE_KEYS,
+)
+REQUIRED_PENDING_KEYS = (
+    "status",
+    "attempts_per_cell",
+    "task_ids",
+    "pass_definition",
 )
 
 
@@ -97,13 +92,27 @@ def _bool_flags(cell: Mapping[str, Any], *keys: str) -> List[bool]:
     return []
 
 
+def pending_public_on_off() -> Dict[str, Any]:
+    """Public document used before a sealed batch has been graded."""
+    return {
+        "status": "not_yet_run",
+        "attempts_per_cell": ATTEMPTS_PER_CELL,
+        "models": list(MODELS),
+        "task_ids": list(TASK_IDS),
+        "pass_definition": PASS_DEFINITION,
+        "notes": [
+            "Scores will be written after a sealed skill-off / skill-on run.",
+            "Each cell is one Grok 4.6 attempt and one Opus 5 attempt, not two copies of one model.",
+            "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments.",
+        ],
+    }
+
+
 def suite_from_cells(
     cells: Mapping[Tuple[str, str], Mapping[str, Any]],
     pack_ids: Sequence[str],
-    *,
-    suite_key: str,
 ) -> Dict[str, Any]:
-    """Aggregate one suite. Drops solver ids and per-attempt dumps.
+    """Aggregate the sealed suite. Drops solver ids and per-attempt dumps.
 
     Parameters
     ----------
@@ -111,19 +120,17 @@ def suite_from_cells(
         Keyed by ``(pack_id, "off"|"on")``.
     pack_ids : Sequence[str]
         Task order.
-    suite_key : str
-        ``standard`` or ``additional``.
 
     Returns
     -------
     Dict[str, Any]
-        Public suite block.
+        Public suite fields (merged into the top-level document).
     """
     rows: List[Dict[str, Any]] = []
     combined: Dict[str, List[bool]] = {"off": [], "on": []}
     checklist: Dict[str, List[bool]] = {"off": [], "on": []}
     coverage: Dict[str, List[bool]] = {"off": [], "on": []}
-    all_three: Dict[str, int] = {"off": 0, "on": 0}
+    both: Dict[str, int] = {"off": 0, "on": 0}
     for pack_id in pack_ids:
         row: Dict[str, Any] = {
             "id": pack_id,
@@ -133,20 +140,24 @@ def suite_from_cells(
             cell = cells[(pack_id, cond)]
             successes = [bool(x) for x in cell.get("successes") or []]
             combined[cond].extend(successes)
-            checklist[cond].extend(_bool_flags(cell, "band_a_successes", "checklist_successes"))
-            coverage[cond].extend(_bool_flags(cell, "band_b_successes", "coverage_successes"))
+            checklist[cond].extend(
+                _bool_flags(cell, "band_a_successes", "checklist_successes")
+            )
+            coverage[cond].extend(
+                _bool_flags(cell, "band_b_successes", "coverage_successes")
+            )
             row[f"{cond}_attempts_passing"] = int(sum(successes))
             row[f"{cond}_pass_at_1"] = _rate(float(cell["pass_at_1"]))
-            row[f"{cond}_pass_at_3"] = _rate(float(cell["pass_at_3"]))
-            if float(cell["pass_at_3"]) == 1.0:
-                all_three[cond] += 1
+            row[f"{cond}_both_models"] = int(bool(successes) and all(successes))
+            if row[f"{cond}_both_models"]:
+                both[cond] += 1
         rows.append(row)
     if len(combined["off"]) != len(combined["on"]):
         raise ValueError("off and on attempt lengths differ")
     if len(coverage["off"]) != len(coverage["on"]):
         raise ValueError("off and on coverage lengths differ")
     return {
-        "label": SUITE_LABELS[suite_key],
+        "label": SUITE_LABEL,
         "task_ids": list(pack_ids),
         "attempt_successes": {
             "off": int(sum(combined["off"])),
@@ -158,8 +169,8 @@ def suite_from_cells(
             "on": _rate(pass_at_k(combined["on"], 1)) if combined["on"] else 0.0,
         },
         "tasks_passing_all_attempts": {
-            "off": int(all_three["off"]),
-            "on": int(all_three["on"]),
+            "off": int(both["off"]),
+            "on": int(both["on"]),
             "out_of": int(len(pack_ids)),
         },
         "checklist_successes": {
@@ -211,58 +222,47 @@ def load_suite_cells(
 
 def build_public_on_off(
     *,
-    standard_dir: Path = DEFAULT_CELL_DIR,
-    additional_dir: Path = DEFAULT_CELL_DIR,
+    cell_dir: Path = DEFAULT_CELL_DIR,
     logger: Optional[logging.Logger] = None,
 ) -> Dict[str, Any]:
-    """Assemble the public score document.
+    """Assemble the public score document from a completed batch.
 
     Parameters
     ----------
-    standard_dir : Path
-        Per-cell JSON for the eight reporting tasks.
-    additional_dir : Path
-        Per-cell JSON for the four science tasks.
+    cell_dir : Path
+        Per-cell JSON for the five sealed tasks.
     logger : logging.Logger, optional
         Injected logger.
 
     Returns
     -------
     Dict[str, Any]
-        Public score document.
+        Public score document with ``status`` ``complete``.
     """
     if logger is not None:
-        logger.info("reading standard-task cells from %s", standard_dir)
-        logger.info("reading additional-task cells from %s", additional_dir)
-    standard_cells = load_suite_cells(standard_dir, STANDARD_IDS)
-    additional_cells = load_suite_cells(additional_dir, ADDITIONAL_IDS)
-    commits = {
-        str(cell.get("git") or "")
-        for cell in (*standard_cells.values(), *additional_cells.values())
-    }
-    dates = {
-        str(cell.get("date") or "")
-        for cell in (*standard_cells.values(), *additional_cells.values())
-    }
+        logger.info("reading cells from %s", cell_dir)
+    cells = load_suite_cells(cell_dir, TASK_IDS)
+    commits = {str(cell.get("git") or "") for cell in cells.values()}
+    dates = {str(cell.get("date") or "") for cell in cells.values()}
     commits.discard("")
     dates.discard("")
     if len(commits) != 1:
         raise ValueError(f"mixed or missing eval commits: {sorted(commits)}")
     if len(dates) != 1:
         raise ValueError(f"mixed or missing eval dates: {sorted(dates)}")
-    return {
+    payload = {
+        "status": "complete",
         "date": next(iter(dates)),
         "eval_commit": next(iter(commits)),
-        "attempts_per_cell": 3,
+        "attempts_per_cell": ATTEMPTS_PER_CELL,
+        "models": list(MODELS),
         "pass_definition": PASS_DEFINITION,
-        "standard": suite_from_cells(standard_cells, STANDARD_IDS, suite_key="standard"),
-        "additional": suite_from_cells(
-            additional_cells, ADDITIONAL_IDS, suite_key="additional"
-        ),
         "notes": [
             "eval_commit is the skill revision used for the runs.",
         ],
     }
+    payload.update(suite_from_cells(cells, TASK_IDS))
+    return payload
 
 
 def write_public_on_off(
@@ -276,7 +276,7 @@ def write_public_on_off(
     Parameters
     ----------
     payload : Mapping[str, Any]
-        Document from ``build_public_on_off``.
+        Document from ``build_public_on_off`` or ``pending_public_on_off``.
     dest : Path
         Output path.
     logger : logging.Logger, optional
@@ -314,81 +314,73 @@ def validate_public_on_off(
         Problems. Empty means valid.
     """
     problems: List[str] = []
-    for key in REQUIRED_TOP_KEYS:
+    status = str(payload.get("status") or "")
+    if status not in {"not_yet_run", "complete"}:
+        problems.append("status must be not_yet_run or complete")
+        return problems
+    required = REQUIRED_PENDING_KEYS if status == "not_yet_run" else REQUIRED_COMPLETE_KEYS
+    for key in required:
         if key not in payload:
             problems.append(f"missing top-level key {key}")
     if problems:
         return problems
     n_attempts = int(payload["attempts_per_cell"])
-    if n_attempts != 3:
-        problems.append("attempts_per_cell must be 3")
-    if "Band A" in str(payload.get("pass_definition") or "") or "Band B" in str(
-        payload.get("pass_definition") or ""
-    ):
+    if n_attempts != ATTEMPTS_PER_CELL:
+        problems.append(f"attempts_per_cell must be {ATTEMPTS_PER_CELL}")
+    definition = str(payload.get("pass_definition") or "")
+    if "Band A" in definition or "Band B" in definition:
         problems.append("pass_definition must not use Band A / Band B")
-    for suite_name in ("standard", "additional"):
-        suite = payload[suite_name]
-        if not isinstance(suite, dict):
-            problems.append(f"{suite_name} is not an object")
-            continue
-        for key in REQUIRED_SUITE_KEYS:
-            if key not in suite:
-                problems.append(f"{suite_name} missing {key}")
-        task_ids = list(suite.get("task_ids") or [])
-        expected = list(STANDARD_IDS if suite_name == "standard" else ADDITIONAL_IDS)
-        if task_ids != expected:
-            problems.append(f"{suite_name} task_ids {task_ids} != {expected}")
-        for task_id in task_ids:
-            if not (packs_root / task_id / "prompt.md").is_file():
-                problems.append(f"missing tracked task {task_id}")
-            if not (packs_root / task_id / "data.csv").is_file():
-                problems.append(f"missing data.csv for {task_id}")
-        attempts = suite.get("attempt_successes") or {}
-        out_of = int(attempts.get("out_of") or 0)
-        if out_of != n_attempts * len(task_ids):
-            problems.append(f"{suite_name} attempt out_of {out_of} is inconsistent")
-        for cond in ("off", "on"):
-            successes = int(attempts.get(cond) or 0)
-            if not 0 <= successes <= out_of:
-                problems.append(f"{suite_name} {cond} successes out of range")
-            expected_rate = _rate(successes / out_of) if out_of else 0.0
-            reported = _rate(
-                float((suite.get("attempt_pass_at_1") or {}).get(cond) or 0.0)
-            )
-            if expected_rate != reported:
-                problems.append(
-                    f"{suite_name} {cond} pass^1 {reported} != {expected_rate}"
-                )
-        rows = list(suite.get("tasks") or [])
-        row_ids = [str(row.get("id")) for row in rows]
-        if row_ids != task_ids:
-            problems.append(f"{suite_name} task rows {row_ids} != {task_ids}")
-        for row in rows:
-            if not row.get("label"):
-                problems.append(f"{row.get('id')} missing label")
-            for key in (
-                "off_attempts_passing",
-                "on_attempts_passing",
-                "off_pass_at_1",
-                "on_pass_at_1",
-                "off_pass_at_3",
-                "on_pass_at_3",
-            ):
-                if key not in row:
-                    problems.append(f"{row.get('id')} missing {key}")
+    task_ids = list(payload.get("task_ids") or [])
+    if task_ids != list(TASK_IDS):
+        problems.append(f"task_ids {task_ids} != {list(TASK_IDS)}")
+    for task_id in task_ids:
+        if not (packs_root / task_id / "prompt.md").is_file():
+            problems.append(f"missing tracked task {task_id}")
+        if not (packs_root / task_id / "data.csv").is_file():
+            problems.append(f"missing data.csv for {task_id}")
     if "model" in payload or "solver" in payload:
         problems.append("public file must not contain a solver field")
+    if status == "not_yet_run":
+        return problems
+    for key in REQUIRED_SUITE_KEYS:
+        if key not in payload:
+            problems.append(f"missing {key}")
+    attempts = payload.get("attempt_successes") or {}
+    out_of = int(attempts.get("out_of") or 0)
+    if out_of != n_attempts * len(task_ids):
+        problems.append(f"attempt out_of {out_of} is inconsistent")
+    for cond in ("off", "on"):
+        successes = int(attempts.get(cond) or 0)
+        if not 0 <= successes <= out_of:
+            problems.append(f"{cond} successes out of range")
+        expected_rate = _rate(successes / out_of) if out_of else 0.0
+        reported = _rate(float((payload.get("attempt_pass_at_1") or {}).get(cond) or 0.0))
+        if expected_rate != reported:
+            problems.append(f"{cond} pass^1 {reported} != {expected_rate}")
+    rows = list(payload.get("tasks") or [])
+    row_ids = [str(row.get("id")) for row in rows]
+    if row_ids != task_ids:
+        problems.append(f"task rows {row_ids} != {task_ids}")
+    for row in rows:
+        if not row.get("label"):
+            problems.append(f"{row.get('id')} missing label")
+        for key in (
+            "off_attempts_passing",
+            "on_attempts_passing",
+            "off_pass_at_1",
+            "on_pass_at_1",
+            "off_both_models",
+            "on_both_models",
+        ):
+            if key not in row:
+                problems.append(f"{row.get('id')} missing {key}")
     return problems
 
 
-def per_cell_trees_available(
-    standard_dir: Path = DEFAULT_CELL_DIR,
-    additional_dir: Path = DEFAULT_CELL_DIR,
-) -> bool:
-    """True when both local per-cell trees are present."""
+def per_cell_trees_available(cell_dir: Path = DEFAULT_CELL_DIR) -> bool:
+    """True when local per-cell score files are present."""
     try:
-        load_suite_cells(standard_dir, STANDARD_IDS)
-        load_suite_cells(additional_dir, ADDITIONAL_IDS)
+        load_suite_cells(cell_dir, TASK_IDS)
     except FileNotFoundError:
         return False
     return True
@@ -402,22 +394,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="validate the committed public file only",
     )
     parser.add_argument(
-        "--standard-dir",
-        "--homework-dir",
-        dest="standard_dir",
+        "--cell-dir",
         type=Path,
         default=DEFAULT_CELL_DIR,
-        help="directory of standard-task per-cell JSON",
-    )
-    parser.add_argument(
-        "--additional-dir",
-        "--science-dir",
-        dest="additional_dir",
-        type=Path,
-        default=DEFAULT_CELL_DIR,
-        help="directory of additional-task per-cell JSON",
+        help="directory of per-cell JSON",
     )
     parser.add_argument("--out", type=Path, default=PUBLIC_PATH)
+    parser.add_argument(
+        "--pending",
+        action="store_true",
+        help="write the not-yet-run public document",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
     if args.check:
         payload = json.loads(args.out.read_text(encoding="utf-8"))
@@ -426,9 +413,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise SystemExit("\n".join(problems))
         print(str(args.out))
         return 0
-    payload = build_public_on_off(
-        standard_dir=args.standard_dir,
-        additional_dir=args.additional_dir,
+    payload = pending_public_on_off() if args.pending else build_public_on_off(
+        cell_dir=args.cell_dir
     )
     problems = validate_public_on_off(payload)
     if problems:

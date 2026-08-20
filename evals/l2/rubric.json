@@ -37,11 +37,11 @@
     },
     {
       "id": "gq_or_vmap",
-      "need": "PPC in generated quantities (Stan) or vmap (JAX), not a numpy rewrite of the likelihood"
+      "need": "posterior predictives from the same likelihood used for inference, not a numpy rewrite"
     },
     {
       "id": "constraint_ok",
-      "need": "positive scales via constrained declaration or an explicit Jacobian"
+      "need": "positive scales via a constrained declaration, a positive family, or an explicit Jacobian"
     }
   ],
   "band_b": {

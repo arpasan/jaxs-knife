@@ -15,7 +15,7 @@ Compatible with Cursor and any agent that supports the
 
 ## What it does
 
-1. Formulate the generative story
+1. Formulate the generative story, including how a row got into the file
 2. Specify weakly informative, justified priors
 3. Implement in Stan or JAX (see the engine table in the skill)
 4. Prior predictive checks before sampling
@@ -41,57 +41,32 @@ Do this only when you mean the skill to attach automatically.
 
 ## Evaluation
 
-Each task was assigned two conditions: skill absent from the agent's
-workspace, then skill attached. Nothing else changed. One model was
-held fixed across both conditions. Each task's prompt and data file
-were used as stored under `evals/l2/packs/`. Three independent
-attempts were made per task and condition, each in its own directory
-with no shared memory. A deterministic script grades the files the
-agent left behind. Scores:
-[`evals/l2/results/README.md`](evals/l2/results/README.md)
-([`on_off.json`](evals/l2/results/on_off.json)).
+The sealed suite is five tasks under `evals/l2/packs/`. Each task is
+run in two conditions (skill absent from the host catalog, then the
+skill attached) and by two solvers (one Grok 4.6 attempt and one
+Opus 5 attempt): 20 jobs. The two attempts in a cell are different
+models, not two copies of one model. A deterministic script grades
+the files the agent left behind.
+
+Scores are pending. A prior sealed run was withdrawn after the
+instrument-error coverage screen was found to pin generating latent
+moments. The public file is
+[`evals/l2/results/on_off.json`](evals/l2/results/on_off.json)
+(`status: not_yet_run`). Notes:
+[`evals/l2/results/README.md`](evals/l2/results/README.md).
 
 An attempt passes when the write-up meets a fixed workflow checklist
 (report, 50% and 94% intervals, prior predictive check, diagnostics,
-limitations, draws on disk) and, when the task records the parameter
-values used to generate its data, each value lies in the reported 94%
-interval. Those values are withheld from the agent's directory; they
-remain in this repository so the grade is checkable.
+limitations, draws on disk) and each recorded generating value lies in
+the reported 94% interval. Those values are withheld from the agent's
+directory; they remain in this repository so the grade is checkable.
+The checklist is the scientific workflow, not an engine fashion test.
 
-Two suites share that grader. The first is eight reporting exercises
-(regression through a JAX log-density). The second is four science
-problems — a mixture, a hierarchical model, a JAX location-scale fit,
-and a recording process that drops low values — scored with the same
-write-up checklist.
-
-```text
-+------------------------+--------------------------+-----------+----------+
-| Suite                  | Measure                  | skill off | skill on |
-+------------------------+--------------------------+-----------+----------+
-| Eight reporting tasks  | attempts passing         |    5 / 24 |  21 / 24 |
-|                        | tasks passing 3 of 3     |     0 / 8 |    6 / 8 |
-|                        | generating-value covered |   15 / 15 |  15 / 15 |
-+------------------------+--------------------------+-----------+----------+
-| Four science tasks     | attempts passing         |    6 / 12 |  12 / 12 |
-|                        | tasks passing 3 of 3     |     1 / 4 |    4 / 4 |
-|                        | generating-value covered |   12 / 12 |  12 / 12 |
-+------------------------+--------------------------+-----------+----------+
-```
-
-Coverage is scored only on tasks that record generating values (five of
-the eight reporting tasks, and all four science tasks). Each such task
-was accepted only if a reference interval under the task's own priors
-contained the value, so that row is a floor check: it was already
-complete without the skill, and attaching the skill did not disturb it.
-
-The difference between conditions is therefore confined to the write-up
-and its diagnostics. In this run the model specified and fit these
-problems under both conditions; what it omitted when unprompted is the
-prior predictive check, the convergence statement, the criticism step,
-and the interval discipline that let a reader audit the result. That is
-what the skill supplies. It is not a claim of a better posterior. Two
-of the eight reporting tasks still have failing attempts with the skill
-attached; see the per-task table in the results note.
+Four tasks accept a CSV only when a naive interval misses the named
+estimand and a reference interval under the task's observation model
+covers it. The instrument-error reference estimates unmarked-`x`
+moments from the instrument columns. J1 is a location-scale floor
+check.
 
 Design and grading predicates: [`evals/l2/PROTOCOL.md`](evals/l2/PROTOCOL.md).
 

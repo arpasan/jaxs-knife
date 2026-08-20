@@ -13,33 +13,20 @@ Tracked in a clone:
 
 Gitignored local working directories (not in a clone):
 
-- `.local/` — internal working trees, including the numbered test trees
+- `.local/` — internal working trees
 - `stan_models/` — CmdStan compile cache
 
-Numbered test trees live directly under `.local/`. A roman-numeral
-prefix marks a test tree; anything in `.local/` without one is shared
-tooling or research material, not evidence.
-
-- `.local/i-skill-on-off/` — reporting suite, skill off vs. on
-- `.local/ii-engine-compare/` — unpublished engine compare
-- `.local/iii-science-on-off/` — science suite, skill off vs. on
-- `.local/iv-rehearsals/` — author demonstrations, not an evaluation
-
-Each local working directory carries its own `README.md` stating what it
-holds, what was held fixed, how to read it, and what must not be
-touched. Read that file before running anything inside one, and before
-changing a published number that depends on it. The run trees are the
-only evidence behind `evals/l2/results/on_off.json`, and they are not
-reproducible bit-for-bit if deleted. `.local/README.md` indexes the rest.
-Nothing from these directories — model ids, comparator names,
-per-attempt content, or generating values in transit — belongs in a
-tracked file.
+The sealed evaluation lives under `.local/test/` when it is run.
+Operator notes for that tree stay there; a gold-free checklist is
+`evals/l2/OPERATOR.md`. Do not treat leftover directories under
+`.local/` as the test.
 
 An isolated solver is a fresh agent whose working directory is one
 attempt folder (`rep-*`) containing only the files that attempt is
 allowed to see. Do not start one from a chat that has seen `evals/`
 gold. Do not copy rubric, pack `meta.json`, or eval prompts into
-`SKILL.md` or into an agent working directory.
+`SKILL.md` or into an agent working directory. Do not open this
+repository as a solver workspace: this file is itself a playbook.
 
 ## Conventions
 

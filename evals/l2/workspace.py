@@ -53,7 +53,7 @@ def prepare_workspace(
     Parameters
     ----------
     pack_id : str
-        Pack id (e.g. ``S1``).
+        Pack id (e.g. ``E1``).
     dest : Path
         Empty directory that will become the agent cwd.
     condition : Condition

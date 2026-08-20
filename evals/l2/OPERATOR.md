@@ -11,8 +11,9 @@ steps; it does not require Stan or JAX.
 ## Sequence
 
 1. Clear Cursor Settings → User Rules. Quit the app fully and reopen.
-2. Host Bayesian skills stay hidden until an on-solver puts **only**
-   this skill shortcut back.
+2. Host Bayesian skills stay hidden **outside** `~/.cursor/skills`
+   (sibling folder `~/.cursor/_hidden_for_eval`) until an on-solver
+   puts **only** this skill shortcut back.
 3. Four solver windows, in order: off Grok, off Opus, on Grok, on Opus.
    Pick that model in the Cursor model menu. File → Open Folder on that
    sealed tree. New chat. Paste the prompt for that tree.

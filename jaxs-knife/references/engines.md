@@ -73,4 +73,4 @@ BlackJAX exposes `NUTSInfo.is_divergent`. Store it as `diverging` (`from_blackja
 
 nutpie does not run generated quantities. A nutpie trace passed straight through has no `log_likelihood` and no PPC until a second GQ / `vmap` pass. LOO and calibration then skip or fail; that is not a clean bill of health.
 
-Do not put a Python `if` or `clip` on a parameter inside a JAX log-density. Constrained decls / `log1p_exp` / a bijector. Hard clips flatten gradients.
+Do not put a Python `if` or `clip` on a parameter inside a JAX log-density. Constrained decls / `log1p_exp` / a bijector. Hard clips flatten gradients. An observation model whose control flow must iterate until a parameter-dependent stopping rule stays in Stan (Carpenter 2025).

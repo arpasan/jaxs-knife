@@ -16,7 +16,7 @@ Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass
 | Intercept | `normal(mean(y), 2 * sd(y))` | Complete-data scale only. Do not use on a selected or truncated slice. |
 | Scale / SD | `exponential(1)` or `gamma(2, 2)` | Avoid HalfCauchy / HalfFlat on hierarchical scales |
 | Proportion | `beta(2, 2)` | Or `logistic` on unconstrained |
-| Correlation | `lkj_corr(2)` | `eta=1` uniform; `eta=2` pulls to identity |
+| Correlation | `lkj_corr_cholesky(2)` | Varying intercepts and slopes: `cholesky_factor_corr` + `diag_pre_multiply`. Do not put independent `tau`s on each slope. `eta=1` is uniform on correlations; `eta=2` pulls toward identity |
 | Count rate | `gamma` or `lognormal` | Positive |
 | Student-t ν | `gamma(2, 0.1)` | Keeps ν out of the degenerate tail |
 | Ordered cutpoints | `ordered` vector + normal | Identifiability |
@@ -26,6 +26,16 @@ Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass
 Prefer a `prior_only` data flag in the **same** program so the prior predictive cannot drift from the fitted model. Stan: `generated quantities` with `*_rng` and no conditioning on `y` when `prior_only` is set. JAX: `vmap` the observation model over prior draws of unconstrained parameters (after `constrain`).
 
 If prior predictive values are impossible (negative blood pressure, billion-dollar daily spend), fix priors first.
+
+A uniform prior on a bounded parameter is informative on any nonlinear
+function of it. Check the prior predictive of the quantity you will
+report, not only of the sampled coordinate.
+
+When the user states quantiles and a bound, those *are* the prior. A
+named family that cannot hit them is the wrong model of the knowledge.
+Sample through the inverse CDF of a distribution that honors the stated
+support, then prior-predict on the outcome scale. Keep `exponential` /
+`normal(0, 2.5)` when nobody elicited quantiles.
 
 ## Selected or truncated samples
 

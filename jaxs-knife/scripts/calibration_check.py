@@ -1,4 +1,4 @@
-"""PPC coverage / PIT calibration on ArviZ InferenceData.
+"""PPC coverage on ArviZ InferenceData (not a LOO-PIT).
 
 Uses a simple nominal-coverage check that does not require arviz_plots.
 When arviz_plots is installed, optional ΔECDF plots can be saved.
@@ -109,7 +109,6 @@ def assess_calibration(
         logger.info("Coverage empirical=%.3f nominal=%.3f delta=%.3f", empirical, nominal, delta)
     well = abs(delta) <= 0.02
     return {
-        "pit_ecdf_inside_bands": well,
         "coverage_ecdf_inside_bands": well,
         "well_calibrated": well,
         "mean_coverage_deviation": round(delta, 4),

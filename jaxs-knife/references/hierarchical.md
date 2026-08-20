@@ -4,6 +4,11 @@ Use when observations nest in interchangeable groups (students in schools, patie
 
 Partial pooling is the default: small groups shrink; large groups keep their estimate. Complete pooling reports a shared mean and has no group-level scale. No pooling reports each group mean and does not shrink. If the estimand is a group mean or a group-level scale, those two shortcuts are different models, not the same model with a wider interval.
 
+Prediction for a group that is not in the data draws from the
+hyperprior in generated quantities (`theta_new ~ normal(mu, tau)`).
+Using `mu` alone drops between-group variance. Reusing a fitted
+`theta[j]` invents membership.
+
 ## Centered vs. non-centered
 
 This is the usual source of divergences (Neal funnel / 8-schools).
@@ -32,3 +37,7 @@ Sample `theta_raw ~ N(0, 1)` unconstrained; set `theta = mu + tau * theta_raw` i
 ## WGC and QR
 
 Collinear `X`: QR reparameterization from the Stan User’s Guide. Hierarchical slopes: center predictors **within group** so the intercept remains interpretable.
+
+Varying intercepts and slopes need a joint covariance: Cholesky factor
+of an LKJ correlation (`lkj_corr_cholesky`) and `diag_pre_multiply`,
+not a stack of independent `tau`s. See [priors.md](priors.md).

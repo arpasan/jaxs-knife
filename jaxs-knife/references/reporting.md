@@ -18,11 +18,17 @@ After every full run, write `<slug>/report.md`. Static sentences stay verbatim. 
 └── report.md
 ```
 
-Optional: `pit_ecdf.png`, `psense.json`, CmdStan `diagnose` text.
+Optional: `pit_ecdf.png` from `az.plot_loo_pit` (not from
+`calibration_check.py`), `psense.json`, CmdStan `diagnose` text.
 
 ## Interval policy
 
 No width is magic. Default: **50% typical + 94% range** (HDI). 80% HDI is notebook ink, not the scientific default. Do not mix HDI with ArviZ bare ETI defaults without saying so.
+
+An HDI is not invariant to reparameterization (Vehtari, BDA3 notes).
+If you report a ratio, an odds, or an inverse-link dose, compute the
+interval on the scale you print. Equal-tailed intervals do transform;
+HDIs do not.
 
 A single 94% HDI is a statement about this posterior, not a calibration claim. Coverage and calibration require repeated datasets (SBC or simulated replications).
 
@@ -31,6 +37,10 @@ Report Monte Carlo standard error next to every printed posterior number. Gate E
 ## Language
 
 Probability language. Never “significant,” “rejected,” or p-values. Posterior **mean** of predictive probabilities, never median.
+
+Answer “is the effect real” with prior-to-posterior movement and the
+posterior probability of a domain-relevant threshold. A Bayes factor
+tracks prior scale and reintroduces an accept/reject frame.
 
 ## Template
 

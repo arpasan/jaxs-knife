@@ -7,14 +7,14 @@ description: >
   quantities, diagnose), and JAX-like-Stan log-density patterns that agents skip
   unprompted. Use when writing or diagnosing .stan programs, CmdStan/CmdStanPy
   fits, JAX logdensity_fn / BlackJAX NUTS,   hierarchical or funnel geometry,
-  partial pooling, measurement error, truncation, censoring, imperfect assays,
+  partial pooling, measurement error, truncation, censoring, missing data, imperfect assays,
   divergences, R-hat, ESS, PSIS-LOO, ELPD, stacking, prior
   predictive checks, or a Bayesian report.md. Do not use for PyMC-only models,
   causal identification / DAGs /
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # jaxs-knife
@@ -23,14 +23,14 @@ Stan when you can. JAX when you must.
 
 Every analysis follows this sequence. Do not skip criticism.
 
-1. **Formulate** — Generative story first. Driving question first. Bayes is optional if counting suffices. How did a row get into the file? [references/observation.md](references/observation.md).
-2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior. Do not center on a selected slice.
+1. **Formulate** — Generative story first. Driving question first. Bayes is optional if counting suffices. How did a row get into the file, and why is a cell blank? [references/observation.md](references/observation.md).
+2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior. Do not center on a selected slice. Stated quantiles and support are the prior when that is the knowledge.
 3. **Implement** — Pick an engine ([references/engines.md](references/engines.md)), then write the model.
 4. **Prior predictive** — Before MCMC. If draws are nonsense, fix priors first.
 5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Recovery cannot bless the observation model. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
-8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too.
+8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too. LOO-PIT for spread and location, not a KDE of the mean.
 9. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
 10. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
 11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not asserted.
@@ -141,10 +141,11 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 - ΔELPD < 2 × dSE → indistinguishable; prefer the simpler model. Stacking when there is no winner. LOO is not NHST.
 - Power-scaling CJS > 0.05 is a flag to document, not a command to loosen priors.
 - Posterior **mean** of predictive probabilities, never median.
-- Probability language. Never “significant” / p-values.
+- Probability language. Never “significant” / p-values. Prefer prior-to-posterior movement over a Bayes factor.
+- Compute 50% and 94% HDIs on the scale you print. An HDI is not invariant to reparameterization.
 - Save draws before post-processing (`inference_data.nc`).
 - Discrete latents and mixtures: [references/mixtures.md](references/mixtures.md). Label switching is not more draws.
-- Recording, truncation, censoring, measurement error, imperfect assays: [references/observation.md](references/observation.md). The observation model is part of the likelihood.
+- Recording, truncation, censoring, missing cells, measurement error, imperfect assays: [references/observation.md](references/observation.md). The observation model is part of the likelihood.
 - Use `scripts/diagnose_model.py` → `calibration_check.py` → `check_diagnostics.py`. Paste ratings into `report.md`.
 
 ## Utility scripts
@@ -169,6 +170,10 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 - **Selected slice, complete-data likelihood** → interval is for the retained rows, not the process. Write the inclusion rule first.
 - **`y ~ x_obs` when `x` has a reported SE** → attenuated slope, over-confident interval. The regressor is the unmarked true value.
 - **Assay calls treated as truth** → prevalence pinned to the false-positive floor. The stated error rate belongs in the likelihood.
+- **`dropna` on incomplete rows** → an inclusion rule. If a cell is missing because of what it would have been, it is a parameter, not a deleted row.
+- **HDI of `log(theta)`** → not the log of the HDI of `theta`. Compute the interval on the scientific scale.
+- **New group scored as `mu` or a fitted `theta[j]`** → draw from the hyperprior in generated quantities.
+- **i.i.d. Poisson, then NB, when rows have unequal exposure** → offset first; overdispersion is a later repair.
 
 ## When things go wrong
 

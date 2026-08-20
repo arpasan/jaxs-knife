@@ -21,3 +21,7 @@ If Pareto-k is bad, do not compare ELPDs. Fix the model or use K-fold. Moment ma
 **Stacking** when there is no winner (Yao et al.). Report weights, not a fake champion.
 
 WAIC: only if you cannot compute PSIS-LOO. Say so.
+
+A Bayes factor can move by orders of magnitude while the posterior
+barely does. Report posterior movement, not a BF, unless the user
+asked for a marginal likelihood.

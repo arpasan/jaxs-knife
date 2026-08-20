@@ -16,6 +16,7 @@ on a selection process that the columns do not record.
 2. What was seen and discarded, and is the discarded count known?
 3. Is a covariate the true regressor, or an instrument reading?
 4. Is a label the true class, or an assay with a stated error rate?
+5. Why is a cell blank? Dropping incomplete rows is an inclusion rule.
 
 The observation model is part of the generative story. It is not a
 footnote after a complete-data GLM.
@@ -29,6 +30,7 @@ These are different likelihoods. Do not interchange the names.
 | Truncation | Only units that passed a rule; discarded count unknown | Density of the retained variable, divided by the probability of retention |
 | Censoring | A mark that the value fell outside a limit; *n* known | Point density for uncensored rows; tail probability (`*_lcdf` / `*_lccdf`) for censored rows |
 | Selection / length bias | Units intercepted with probability that depends on size or duration | Reweight by the inclusion probability; a complete-data density on the retained slice is the wrong model |
+| Item missingness | Some cells blank; the row may still be present | `dropna` is an inclusion rule. If a value is missing because of what it would have been (MNAR), or of observed covariates (MAR), model the missing entry as a parameter. A complete-data likelihood on the observed slice is the same mistake as ignoring truncation (BDA3 ch. 8) |
 
 Stan has `*_lcdf` / `*_lccdf` and truncation syntax `T[L,U]`. JAX has
 neither. In JAX, write the tail (`log_ndtr`, a quadrature, or an
@@ -70,3 +72,6 @@ model is the one that generated the file.
 PPC and PSIS-LOO are likewise silent on a shared observation misspecification:
 they compare the fitted model to the recorded slice, not to the process
 that produced the slice.
+
+If the file is a sample and the estimand is a population share, say so.
+The sample is not the population; poststratify or restrict the claim.

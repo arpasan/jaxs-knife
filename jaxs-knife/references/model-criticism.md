@@ -20,7 +20,7 @@ When the PPC misses the data, pick the repair from the **observed** misfit, then
 | Observed misfit | First repair |
 |---|---|
 | Tails too light | Student-t / heavier residual |
-| Counts overdispersed | `neg_binomial_2` |
+| Counts overdispersed | If rows have unequal exposure (person-years, area, trials), put `log(exposure)` in the mean first. Only then `neg_binomial_2` |
 | Groups ignored | Hierarchy (non-centered if weakly identified) |
 | Mean systematically off | Likelihood family or link |
 | Mixture / labels unstable | [mixtures.md](mixtures.md) |
@@ -49,9 +49,15 @@ Requires pointwise `log_likelihood` on the InferenceData (Stan `log_lik` in GQ, 
 
 `p_loo` ≫ parameter count → misspecification or priors too weak.
 
+LOO-PIT (`az.plot_loo_pit`) is the calibration view of the predictive
+distribution. A systematic S-shape or slope is misfit in spread or
+location. It is not the same object as
+`scripts/calibration_check.py`, which scores nominal HDI coverage of
+this dataset's observations.
+
 ## Calibration
 
-`scripts/calibration_check.py` compares empirical HDI coverage of *this* dataset's observations under the posterior predictive to the nominal 94% (or the interval you actually reported). That is a PPC diagnostic on one fit. It is not a calibration or coverage claim. Those require repeated datasets (SBC or simulated replications).
+`scripts/calibration_check.py` compares empirical HDI coverage of *this* dataset's observations under the posterior predictive to the nominal 94% (or the interval you actually reported). That is a PPC diagnostic on one fit. It is not a LOO-PIT, and it is not a calibration or coverage claim. Those require repeated datasets (SBC or simulated replications).
 
 | Mean coverage Δ | Diagnosis |
 |---|---|

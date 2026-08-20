@@ -7,7 +7,10 @@ Pack prompts name the scientific story (instrument SE, grouping, assay
 FPR, two-component sample, stated quartiles, blank cells). They do
 not name an engine or a repair. All six share the same workflow
 footer. The workflow checklist grades those steps; it does not
-require Stan or JAX.
+require Stan or JAX. R-hat is a measured maximum on the saved
+draws (or diagnostics JSON / a stated max), not the characters
+`1.01`. Coverage (Band B) is unchanged: recorded values inside
+the reported 94% interval.
 
 ## Sequence
 

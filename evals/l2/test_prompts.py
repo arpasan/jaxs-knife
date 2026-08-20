@@ -46,7 +46,8 @@ _FOOTER = (
     "divergences. Write report.md with 50% and 94% HDIs, probability\n"
     "language (no p-values), and a limitations section. Save posterior\n"
     "draws. Draw posterior predictives from the same likelihood used for\n"
-    "inference, not a numpy rewrite of that likelihood.\n"
+    "inference, not a numpy rewrite of that likelihood. State how a row\n"
+    "entered the file and why any cell is blank.\n"
 )
 EXPECTED = {"E1", "H1", "A1", "K1", "J1", "M1"}
 

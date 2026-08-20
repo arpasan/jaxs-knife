@@ -14,7 +14,7 @@ description: >
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.4"
+  version: "0.1.5"
 ---
 
 # jaxs-knife
@@ -30,7 +30,7 @@ Every analysis follows this sequence. Do not skip criticism.
 5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Recovery cannot bless the observation model. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
-8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too. LOO-PIT for spread and location, not a KDE of the mean.
+8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too. LOO-PIT for spread and location, not a KDE of the mean. If criticism names a different observation rule, that program is the next fit, not a limitations sentence.
 9. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
 10. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
 11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not asserted.
@@ -170,7 +170,7 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 - **Selected slice, complete-data likelihood** → interval is for the retained rows, not the process. Write the inclusion rule first.
 - **`y ~ x_obs` when `x` has a reported SE** → attenuated slope, over-confident interval. The regressor is the unmarked true value.
 - **Assay calls treated as truth** → prevalence pinned to the false-positive floor. The stated error rate belongs in the likelihood.
-- **`dropna` on incomplete rows** → an inclusion rule. If a cell is missing because of what it would have been, it is a parameter, not a deleted row.
+- **`dropna` on incomplete rows** → an inclusion rule. A blank is not automatically a latent draw from the untruncated density. If recorded values stop at a ceiling (or start at a floor) while a complete-data PPC walks past that edge, the blank rows get a tail probability (`*_lccdf` / `*_lcdf`), then you **refit**. Imputing blanks from `y | x` under MAR given `x` is the same posterior as deleting the rows. A logistic missingness grid is not a censored likelihood. Naming that next model in limitations is not a fit.
 - **HDI of `log(theta)`** → not the log of the HDI of `theta`. Compute the interval on the scientific scale.
 - **New group scored as `mu` or a fitted `theta[j]`** → draw from the hyperprior in generated quantities.
 - **i.i.d. Poisson, then NB, when rows have unequal exposure** → offset first; overdispersion is a later repair.
@@ -189,6 +189,7 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 | Prior pred. nonsense | Bad priors | Tighten; never `normal(0, 1000)` |
 | PPC looks fine; slope too small | Predictor is an instrument reading | Latent true `x`; measurement likelihood on the printed value |
 | PPC looks fine; mean off a cutoff | Truncation / selection | Retention probability in the likelihood, not a complete-data density |
+| Recorded max (min) far below (above) almost all `y_rep` extrema | Reporting limit / censoring | Tail probability on the blank or piled-up rows; **refit**. Do not stop at MAR imputation or a limitations sentence |
 | Prevalence near the assay floor | Labels are calls | Put the stated error rates in the observation model |
 | PPC misses data | Misspecification | One repair from the observed misfit; then refit |
 | Pareto-k ≥ 0.7 | Influential points | Inspect; Student-t; K-fold |

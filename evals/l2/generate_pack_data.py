@@ -725,7 +725,7 @@ def _tobit_reference_covers(
     *,
     nominal: float = 0.94,
 ) -> bool:
-    """Grid posterior: observed y are truncated above; blanks are the upper tail."""
+    """Grid posterior: censored-normal (n known). Not truncated-and-censored."""
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     keep = np.asarray(observed, dtype=bool)
@@ -734,7 +734,7 @@ def _tobit_reference_covers(
     x_miss = x[~keep]
     if y_obs.size < 8 or x_miss.size < 4:
         return False
-    upper = float(np.max(y_obs) + 0.08)
+    upper = float(M1_CUT)
 
     def log_ndtr_local(z: Array) -> Array:
         from scipy.special import erfc
@@ -751,13 +751,11 @@ def _tobit_reference_covers(
             mu_obs = alphas[:, None] + beta * x_obs[None, :]
             mu_miss = alphas[:, None] + beta * x_miss[None, :]
             z_obs = (y_obs[None, :] - mu_obs) / sigma
-            z_u_obs = (upper - mu_obs) / sigma
             z_u_miss = (upper - mu_miss) / sigma
             ll = (
                 -0.5 * np.log(2.0 * np.pi)
                 - np.log(sigma)
                 - 0.5 * z_obs**2
-                - log_ndtr_local(z_u_obs)
             ).sum(axis=1)
             ll = ll + log_ndtr_local(-z_u_miss).sum(axis=1)
             logp[:, ib, is_] = ll - 0.5 * (alphas / 2.5) ** 2 - 0.5 * (beta / 2.5) ** 2 - sigma
@@ -770,7 +768,7 @@ def _tobit_reference_covers(
 
 
 def _m1_covers(x: Array, y: Array, observed: Array) -> bool:
-    """Complete-case OLS misses beta; truncated-y reference covers alpha and beta."""
+    """Complete-case OLS misses beta; censored-y reference covers alpha and beta."""
     keep = np.asarray(observed, dtype=bool)
     if _ols_beta_covers(x[keep], y[keep], M1_BETA):
         return False

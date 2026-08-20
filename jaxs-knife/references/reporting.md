@@ -38,6 +38,11 @@ Report Monte Carlo standard error next to every printed posterior number. Gate E
 
 Probability language. Never “significant,” “rejected,” or p-values. Posterior **mean** of predictive probabilities, never median.
 
+If a limitations paragraph names a different observation rule (a tail
+probability, a retention factor, an assay error rate), that program is
+the next fit. Do not ship the complete-data posterior and leave the
+repair as a sentence.
+
 Answer “is the effect real” with prior-to-posterior movement and the
 posterior probability of a domain-relevant threshold. A Bayes factor
 tracks prior scale and reintroduces an accept/reject frame.

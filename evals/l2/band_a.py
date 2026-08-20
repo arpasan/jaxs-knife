@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 _PVALUE = re.compile(
-    r"\b(p\s*[<>=]\s*0\.\d+|statistically significant|significant effect|reject the null)\b",
+    r"\b(statistically significant|significant effect|reject the null|"
+    r"p\s*[<>=]\s*0\.0[0-5]\b)\b",
     re.I,
 )
 _PVALUE_USED = re.compile(r"\bp[\-\s]?values?\b", re.I)
@@ -18,7 +19,12 @@ _PVALUE_NEGATION = re.compile(
 )
 _SKIP_NAMES = frozenset({"prompt.md", "data.csv"})
 _ZERO_DIV = re.compile(
-    r"(zero divergenc|no divergenc|0 divergenc|divergent transitions\s*[|:]\s*0|divergences\s*[:=]\s*0)",
+    r"(zero divergenc|no divergenc|0 divergenc|"
+    r"divergent transitions\s*[|:]\s*0|"
+    r"divergences\s*[:=]\s*0|"
+    r"\b0\s*/\s*[\d,]+\s*(divergent|divergenc)|"
+    r"(divergent|divergenc)[^.\n]{0,40}\b0\s*/\s*[\d,]+|"
+    r"\b0\s+of\s+[\d,]+\s*(divergent|divergenc))",
     re.I,
 )
 _PRIOR_PRED = re.compile(r"prior\s+predictive", re.I)
@@ -27,7 +33,11 @@ _LIMIT = re.compile(r"\b(limitations?|threats?)\b", re.I)
 _HDI = re.compile(r"\bhdi\b", re.I)
 _50 = re.compile(r"\b50\s*%", re.I)
 _94 = re.compile(r"\b94\s*%", re.I)
-_RHAT = re.compile(r"1\.01")
+_RHAT_MAX = re.compile(
+    r"(?:max(?:imum)?|largest)\s+r[-\s]?hat\s*(?:was|is|=|:|of)?\s*([0-9]+(?:\.[0-9]+)?)",
+    re.I,
+)
+_RHAT_GATE = 1.01
 _DIVERGE = re.compile(r"divergenc", re.I)
 _REFUSE = re.compile(
     r"(do not interpret|must not be interpreted|refuse to interpret|not interpret(?:ed|ing)?(?: the posterior)?)",
@@ -43,7 +53,8 @@ _GQ = re.compile(
 _NUMPY_LIK = re.compile(r"(numpy.*normal\(|np\.random\.normal\(.*mu|rewrite.{0,20}likelihood)", re.I)
 _CONSTRAINT = re.compile(
     r"(<lower\s*=|jacobian\s*\+=|jnp\.exp\(|log_abs_det|"
-    r"HalfNormal|HalfCauchy|HalfStudentT|pm\.Exponential|"
+    r"HalfNormal|HalfCauchy|HalfStudentT|LogNormal|"
+    r"pm\.Exponential|pm\.Gamma|pm\.LogNormal|"
     r"softplus)",
     re.I,
 )
@@ -142,6 +153,8 @@ def _div_from_obj(obj: Any) -> int | None:
 
 def _divergences_count(root: Path) -> int | None:
     for path in root.rglob("*.json"):
+        if _under_skill_tree(path, root):
+            continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
@@ -149,7 +162,125 @@ def _divergences_count(root: Path) -> int | None:
         found = _div_from_obj(payload)
         if found is not None:
             return found
+    return _divergences_from_nc(root)
+
+
+def _iter_nc(root: Path) -> Iterable[Path]:
+    root = root.resolve()
+    for path in root.rglob("*.nc"):
+        if path.is_file() and not _under_skill_tree(path, root):
+            yield path
+
+
+def _divergences_from_nc(root: Path) -> int | None:
+    try:
+        import arviz as az
+        import numpy as np
+    except ImportError:
+        return None
+    for path in _iter_nc(root):
+        try:
+            idata = az.from_netcdf(path)
+            stats = getattr(idata, "sample_stats", None)
+            if stats is None or "diverging" not in getattr(stats, "data_vars", ()):
+                continue
+            return int(np.asarray(stats["diverging"].values).sum())
+        except Exception:
+            continue
     return None
+
+
+def _rhat_from_obj(obj: Any) -> float | None:
+    if not isinstance(obj, dict):
+        return None
+    block = obj.get("rhat")
+    if block is None:
+        block = obj.get("r_hat")
+    if isinstance(block, dict) and "max" in block:
+        try:
+            return float(block["max"])
+        except (TypeError, ValueError):
+            return None
+    if isinstance(block, (int, float)):
+        return float(block)
+    conv = obj.get("convergence")
+    if isinstance(conv, dict):
+        found = _rhat_from_obj(conv)
+        if found is not None:
+            return found
+    return None
+
+
+def _rhat_max_from_json(root: Path) -> float | None:
+    for path in root.rglob("*.json"):
+        if _under_skill_tree(path, root):
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        found = _rhat_from_obj(payload)
+        if found is not None:
+            return found
+    return None
+
+
+def _rhat_max_from_nc(root: Path) -> float | None:
+    try:
+        import arviz as az
+        import numpy as np
+    except ImportError:
+        return None
+    skip = {"lp__", "lp", "energy", "tree_depth", "n_steps", "diverging"}
+    for path in _iter_nc(root):
+        try:
+            idata = az.from_netcdf(path)
+            if not hasattr(idata, "posterior"):
+                continue
+            rhat = az.rhat(idata, method="rank")
+            vals: List[float] = []
+            for name in rhat.data_vars:
+                if str(name).lower() in skip or str(name).startswith("lp"):
+                    continue
+                vals.extend(
+                    float(v)
+                    for v in np.asarray(rhat[name].values, dtype=float).ravel()
+                    if np.isfinite(v)
+                )
+            if vals:
+                return float(max(vals))
+        except Exception:
+            continue
+    return None
+
+
+def _rhat_max_from_report(text: str) -> float | None:
+    hit = _RHAT_MAX.search(text or "")
+    if hit is None:
+        return None
+    try:
+        return float(hit.group(1))
+    except (TypeError, ValueError):
+        return None
+
+
+def _rhat_assessment(root: Path, report_text: str) -> Tuple[bool, str]:
+    """Rank-normalized split R-hat ≤ 1.01 from draws, JSON, or a stated max.
+
+    The characters ``1.01`` in an unrelated number are not a pass.
+    """
+    measured = _rhat_max_from_nc(root)
+    source = "InferenceData"
+    if measured is None:
+        measured = _rhat_max_from_json(root)
+        source = "diagnostics JSON"
+    if measured is None:
+        measured = _rhat_max_from_report(report_text)
+        source = "report"
+    if measured is None:
+        return False, "no measured R-hat (draws, JSON, or stated maximum)"
+    ok = measured <= _RHAT_GATE + 1e-12
+    return ok, f"{source} max R-hat {measured:.4f}"
 
 
 def _pvalue_claim(text: str) -> Optional[str]:
@@ -227,7 +358,8 @@ def evaluate_band_a(
         if _code_order_prior_before_sample(root)
         else "prior predictive missing or after sampling",
     )
-    add("rhat_1_01", bool(_RHAT.search(report_text or corpus)), "1.01" if _RHAT.search(report_text or corpus) else "R-hat 1.01 not stated")
+    rhat_ok, rhat_ev = _rhat_assessment(root, report_text or corpus)
+    add("rhat_1_01", rhat_ok, rhat_ev)
     if n_div is None:
         said_zero = bool(_ZERO_DIV.search(report_text or corpus))
         add(

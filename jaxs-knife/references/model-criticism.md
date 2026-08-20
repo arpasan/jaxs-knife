@@ -26,6 +26,7 @@ When the PPC misses the data, pick the repair from the **observed** misfit, then
 | Mixture / labels unstable | [mixtures.md](mixtures.md) |
 | Slope attenuated; PPC still fine | Predictor measured with error ([observation.md](observation.md)) |
 | Mean off a known retention rule | Truncation / selection, not a new residual family |
+| Recorded support stops short of almost all replicated extrema | Reporting limit / censoring: tail probability, then refit. Not MAR imputation and not a limitations footnote ([observation.md](observation.md)) |
 
 Do not stack three likelihood changes in one refit.
 

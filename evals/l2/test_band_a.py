@@ -171,6 +171,122 @@ def test_prior_sensitivity_refit_is_opt_in(tmp_path: Path) -> None:
     assert ok["passed"] is True
 
 
+def test_rhat_uses_stated_max_not_the_token(tmp_path: Path) -> None:
+    trial = tmp_path / "rhat-max"
+    trial.mkdir()
+    report = (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8")
+    report = report.replace("threshold ≤ 1.01", "threshold at the usual gate")
+    report = report.replace("1.01", "")
+    (trial / "report.md").write_text(report, encoding="utf-8")
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    by_id = {p["id"]: p["ok"] for p in evaluate_band_a(trial)["predicates"]}
+    assert by_id["rhat_1_01"] is True
+
+
+def test_rhat_token_alone_does_not_pass(tmp_path: Path) -> None:
+    trial = tmp_path / "rhat-token"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        "# Report\n\n50% HDI and 94% HDI.\n\nR-hat ≤ 1.01.\n"
+        "Zero divergences.\nLimitations: toy data.\n"
+        "Prior predictive before sampling.\n",
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    by_id = {p["id"]: p["ok"] for p in evaluate_band_a(trial)["predicates"]}
+    assert by_id["rhat_1_01"] is False
+
+
+def test_zero_over_total_divergences_counts(tmp_path: Path) -> None:
+    trial = tmp_path / "div-frac"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8").replace(
+            "Divergences: 0.",
+            "Divergences: 0 / 8,000.",
+        ),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        '{"convergence": {"rhat": {"max": 1.002}}}\n',
+        encoding="utf-8",
+    )
+    by_id = {p["id"]: p["ok"] for p in evaluate_band_a(trial)["predicates"]}
+    assert by_id["refuse_divergences"] is True
+    assert by_id["rhat_1_01"] is True
+
+
+def test_lognormal_counts_as_constrained(tmp_path: Path) -> None:
+    trial = tmp_path / "logn"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        "prior predictive before sampling\n"
+        "y = pm.LogNormal('y', 0.0, 1.0, observed=data)\n"
+        "idata = pm.sample()\n"
+        "pm.sample_posterior_predictive(idata)\n"
+        "idata.to_netcdf('inference_data.nc')\n",
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    report = evaluate_band_a(trial)
+    by_id = {p["id"]: p["ok"] for p in report["predicates"]}
+    assert by_id["constraint_ok"] is True
+    assert report["passed"] is True, [p for p in report["predicates"] if not p["ok"]]
+
+
+def test_interval_inequality_is_not_a_pvalue(tmp_path: Path) -> None:
+    trial = tmp_path / "interval-p"
+    trial.mkdir()
+    (trial / "report.md").write_text(
+        (FIX / "pass_workflow" / "report.md").read_text(encoding="utf-8")
+        + "\nThe 94% interval is 0.06 < p < 0.94.\n",
+        encoding="utf-8",
+    )
+    (trial / "fit.py").write_text(
+        (FIX / "pass_workflow" / "fit.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "model.stan").write_text(
+        (FIX / "pass_workflow" / "model.stan").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (trial / "diagnostics.json").write_text(
+        (FIX / "pass_workflow" / "diagnostics.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    by_id = {p["id"]: p["ok"] for p in evaluate_band_a(trial)["predicates"]}
+    assert by_id["probability_language"] is True
+
+
 def test_copied_skill_does_not_grade_itself() -> None:
     """On-skill folders copy SKILL.md; those files must not satisfy Band A."""
     import shutil

@@ -25,7 +25,7 @@
     },
     {
       "id": "rhat_1_01",
-      "need": "rank-normalized R-hat threshold 1.01"
+      "need": "measured rank-normalized split R-hat ≤ 1.01 (draws, diagnostics JSON, or stated maximum; not the characters 1.01 alone)"
     },
     {
       "id": "refuse_divergences",

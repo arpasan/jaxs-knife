@@ -35,7 +35,7 @@ It is not τ-bench pass^3.
 | A1 | Binary assay calls; manufacturer false-positive rate stated | either | Naive proportion misses prevalence; an assay-corrected reference covers it |
 | K1 | Sample from a two-component process; name `mu1`, `mu2`, `weight` | either | A single-normal mean misses both locations; a two-component reference covers all three |
 | J1 | Positive sample; expert quartiles stated; name `q95` | either | A Gaussian tail interval misses the 95th percentile; a lognormal reference covers it |
-| M1 | Response `y` with blank cells; predictor `x`; name `alpha`, `beta` | either | Complete-case OLS misses the slope; a truncated-`y` reference covers intercept and slope |
+| M1 | Response `y` with blank cells; predictor `x`; name `alpha`, `beta` | either | Complete-case OLS misses the slope; a censored-`y` reference covers intercept and slope |
 
 Prompts state the instrument, the grouping, the assay false-positive
 rate, stated quartiles, blank cells, or the named estimands. They do
@@ -73,8 +73,12 @@ and coverage of recorded generating values. The two parts are also
 stored separately in `results/on_off.json` as `checklist_successes`
 and `coverage_successes`.
 
-A robustness cut reports the checklist with and without the literal
-`1.01` R-hat predicate.
+R-hat is a measured maximum (InferenceData rank-normalized split
+R-hat, a diagnostics JSON max, or a stated “max R-hat” in the report).
+The predicate is not a search for the characters `1.01`. A robustness
+cut that drops the R-hat predicate entirely may still be reported.
+Band B is coverage of recorded generating values. Do not revise Band B
+after seeing a run.
 
 ## Procedure
 

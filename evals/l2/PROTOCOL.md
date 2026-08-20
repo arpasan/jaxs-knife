@@ -55,7 +55,11 @@ excluded.
 
 Coverage (implementation: `band_b.py`) is scored on every task. The
 grader reads `inference_data.nc` when several NetCDF files are present.
-Missing parameter names are recorded as failures.
+Missing parameter names are recorded as failures. A named estimand
+saved as a single plug-in number (or a tiled copy of one number) is
+not an interval: Band B fails that name. For `q95`, if the saved
+object is a point but `posterior_predictive` has new-unit draws, the
+grader forms one 95th percentile per draw and scores that interval.
 
 A cell is discarded if `meta.json`, `rubric.json`, or other gold files
 appear in the agent folder: that folder is then no longer a blind

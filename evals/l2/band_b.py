@@ -22,6 +22,8 @@ DEFAULT_ALIASES: Dict[str, tuple[str, ...]] = {
     "q95": ("q95", "q_95", "p95", "quantile_95", "y_q95"),
     "prevalence": ("prevalence", "p", "infection_rate"),
 }
+_MIN_DRAWS = 2
+_Q95_PPC_NAMES: tuple[str, ...] = ("y", "y_rep", "yrep", "obs")
 
 
 def hdi(draws: NDArray[np.floating], prob: float) -> tuple[float, float]:
@@ -76,7 +78,16 @@ def assess_recovery(
             rows[name] = {"ok": False, "error": "parameter missing"}
             all_ok = False
             continue
-        lo, hi = hdi(np.asarray(posterior[name]), nominal)
+        draws = np.asarray(posterior[name])
+        if _is_point(draws):
+            rows[name] = {
+                "ok": False,
+                "error": "need posterior draws, not a plug-in scalar",
+                "n_draws": int(draws.size),
+            }
+            all_ok = False
+            continue
+        lo, hi = hdi(draws, nominal)
         ok = lo <= float(value) <= hi
         rows[name] = {
             "truth": float(value),
@@ -125,6 +136,42 @@ def _vector_component(
     if arr is None or arr.ndim < 1 or arr.shape[-1] < 1:
         return None
     return arr[..., 0]
+
+
+def _is_point(arr: NDArray[np.floating]) -> bool:
+    x = np.asarray(arr, dtype=float).ravel()
+    if x.size < _MIN_DRAWS:
+        return True
+    return bool(np.unique(x).size < 2)
+
+
+def _q95_from_new_unit(arr: NDArray[np.floating]) -> Optional[NDArray[np.floating]]:
+    """Per-draw 95th percentile when the last axis is a new-unit sample."""
+    x = np.asarray(arr, dtype=float)
+    if x.ndim < 2 or x.shape[-1] < 2:
+        return None
+    return np.quantile(x, 0.95, axis=-1)
+
+
+def _q95_from_ppc(idata: Any) -> Optional[NDArray[np.floating]]:
+    groups: List[Any] = []
+    for key in ("posterior_predictive", "predictions"):
+        try:
+            groups.append(getattr(idata, key))
+        except AttributeError:
+            try:
+                groups.append(idata[key])
+            except Exception:
+                continue
+    for post in groups:
+        for name in _Q95_PPC_NAMES:
+            raw = _get_values(post, name)
+            if raw is None:
+                continue
+            derived = _q95_from_new_unit(raw)
+            if derived is not None and not _is_point(derived):
+                return derived
+    return None
 
 
 def posterior_from_idata(
@@ -177,6 +224,10 @@ def posterior_from_idata(
                 found = _vector_component(post, name)
             if found is not None:
                 break
+        if name == "q95" and (found is None or _is_point(found)):
+            derived = _q95_from_ppc(idata)
+            if derived is not None:
+                found = derived
         if found is not None:
             out[name] = found
     return out

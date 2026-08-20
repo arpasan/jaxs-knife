@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from band_b import assess_recovery, hdi
+from generate_pack_data import J1_Q95
 
 
 def test_hdi_contains_center() -> None:
@@ -95,10 +96,47 @@ def test_posterior_from_idata_reads_generated_q95() -> None:
     class _IdataPPC:
         def __init__(self) -> None:
             self.posterior = _Post({"mu": np.zeros((2, 8))})
-            self.posterior_predictive = _Post({"q95": np.full((2, 8), 9.2)})
+            self.posterior_predictive = _Post(
+                {"q95": np.linspace(8.4, 10.0, 16).reshape(2, 8)}
+            )
 
     out = posterior_from_idata(_IdataPPC(), ("q95",))
-    assert abs(float(out["q95"].mean()) - 9.2) < 1e-12
+    assert out["q95"].size == 16
+    assert 8.4 <= float(out["q95"].mean()) <= 10.0
+
+
+def test_scalar_q95_is_rejected() -> None:
+    report = assess_recovery({"q95": np.array([9.21])}, {"q95": 9.21}, nominal=0.94)
+    assert report["passed"] is False
+    assert "plug-in" in report["parameters"]["q95"]["error"]
+
+
+def test_q95_from_y_rep_draws() -> None:
+    from band_b import posterior_from_idata
+
+    rng = np.random.default_rng(4)
+    y_rep = rng.lognormal(mean=0.0, sigma=1.35, size=(4, 80, 200))
+    idata = _IdataPPCBoth(q95=np.array([9.21]), y_rep=y_rep)
+    out = posterior_from_idata(idata, ("q95",))
+    assert out["q95"].size >= 32
+    report = assess_recovery(out, {"q95": J1_Q95}, nominal=0.94)
+    assert report["passed"] is True
+
+
+def test_tiled_scalar_q95_is_rejected() -> None:
+    report = assess_recovery(
+        {"q95": np.full((4, 200), 9.21)},
+        {"q95": 9.21},
+        nominal=0.94,
+    )
+    assert report["passed"] is False
+    assert "plug-in" in report["parameters"]["q95"]["error"]
+
+
+class _IdataPPCBoth:
+    def __init__(self, q95: np.ndarray, y_rep: np.ndarray) -> None:
+        self.posterior = _Post({"q95": q95})
+        self.posterior_predictive = _Post({"y_rep": y_rep})
 
 
 def test_posterior_from_idata_splits_ordered_mu() -> None:

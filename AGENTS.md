@@ -17,9 +17,10 @@ Gitignored local working directories (not in a clone):
 - `stan_models/` — CmdStan compile cache
 
 A live run uses separate top-level solver and grader directories
-outside this repository. Completed run archives may be retained under
-`.local/runs/<date>/`. Operator notes for that archive stay there; a
-gold-free checklist is `evals/l2/OPERATOR.md`. Do not treat leftover
+outside the clone. Completed run archives may be retained under
+`.local/runs/<date>/` (gitignored). Exact launch text is not
+published; keep a copy outside the working tree. A gold-free
+checklist is `evals/l2/OPERATOR.md`. Do not treat leftover
 directories under `.local/` as the next test.
 
 An isolated solver is a fresh agent whose working directory is one

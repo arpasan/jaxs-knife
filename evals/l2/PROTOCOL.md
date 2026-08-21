@@ -16,7 +16,7 @@ conditions, two solvers (24 jobs).
 | Solvers | one Grok 4.6 attempt and one Opus 5 attempt per task and condition |
 | Prompt | pack `prompt.md` verbatim; no coaching of the repair |
 | Agent folder | `prompt.md` and `data.csv` only |
-| Generating values | `meta.json` stays in this repository; never copied into the agent folder |
+| Generating values | `meta.json` stays under `evals/l2/packs/`; never copied into the agent folder |
 | Grade | workflow checklist on written files; coverage of recorded generating values |
 | Headline | attempts passing (out of 12 per condition), tasks where both solvers pass, and coverage |
 | Judge | no LLM string-judge |
@@ -123,8 +123,8 @@ skill catalog.
 A contrast that can be read as skill-off vs. skill-on therefore
 requires, in addition to the folder seal:
 
-- this repository is **not** the solver workspace (`AGENTS.md` here is
-  itself a playbook)
+- the jaxs-knife clone is **not** the solver workspace (`AGENTS.md` in
+  that clone is itself a playbook)
 - standing user rules that encode a Stan/JAX workflow are cleared
 - the host skill catalog does not expose this skill or another
   Bayesian workflow skill

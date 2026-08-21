@@ -1,6 +1,6 @@
 # Operator checklist (gold-free)
 
-Solvers open a sealed folder, not this repository. Do not start a
+Solvers open a sealed folder, not the jaxs-knife clone. Do not start a
 solver from a chat that has opened `evals/`.
 
 Pack prompts name the scientific story (instrument SE, grouping, assay
@@ -18,7 +18,7 @@ the reported 94% interval.
 2. Host Bayesian skills stay hidden **outside** `~/.cursor/skills`
    (sibling folder `~/.cursor/_hidden_for_eval`) until an on-solver
    puts **only** this skill folder back. That folder must be a copy
-   of the skill, not a symlink into this repository. The grader tree
+   of the skill, not a symlink into the jaxs-knife clone. The grader tree
    is a separate folder, not a sibling of the four arms.
 3. Four solver windows, in order: off Grok, off Opus, on Grok, on Opus.
    Pick that model in the Cursor model menu. File → Open Folder on that
@@ -26,13 +26,13 @@ the reported 94% interval.
 4. Fifth window: the grader folder (this harness copy). New Grok 4.6
    chat. That agent grades; it does not restore the machine.
 5. Paste User Rules back from the file you copied them out of.
-6. Reopen this repository and restore the remaining host skills, check
-   the grade, and write the public tables.
+6. Reopen the jaxs-knife clone and restore the remaining host skills,
+   check the grade, and write the public tables.
 
 The skill folder that Cursor attaches is the inner skill directory, not
 the repository root. Do not clone the public repository as a solver
 workspace.
 
-Exact launch text is retained only in the gitignored run archive
-(`.local/runs/<date>/RECIPE.md`). It is never placed in a tracked
-file and never copied into a solver workspace.
+Exact launch text is not published. It is kept in the gitignored run
+archive and in a second copy outside the working tree. Never copy it
+into a solver workspace.

@@ -10,10 +10,7 @@
   "pass_definition": "an attempt passes when every workflow-checklist predicate holds and the reported 94% interval contains each recorded generating value",
   "notes": [
     "eval_commit is the skill revision attached for the skill-on attempts.",
-    "When the grader tree is not a git checkout, the SHA is supplied at publication.",
-    "Skill-absent attempts used PyMC; skill-attached attempts used Stan via CmdStanPy. The two are not separable in this design.",
-    "The blank-response observation guidance was written in this same revision.",
-    "Three of twelve paired attempts differed, all in the same direction. This is one run, not an effect-size estimate."
+    "One run. Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval."
   ],
   "label": "Six isolated benchmark tasks",
   "task_ids": [

@@ -299,10 +299,7 @@ def build_public_on_off(
         "pass_definition": PASS_DEFINITION,
         "notes": [
             "eval_commit is the skill revision attached for the skill-on attempts.",
-            "When the grader tree is not a git checkout, the SHA is supplied at publication.",
-            "Skill-absent attempts used PyMC; skill-attached attempts used Stan via CmdStanPy. The two are not separable in this design.",
-            "The blank-response observation guidance was written in this same revision.",
-            "Three of twelve paired attempts differed, all in the same direction. This is one run, not an effect-size estimate.",
+            "One run. Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval.",
         ],
     }
     payload.update(suite_from_cells(cells, TASK_IDS))

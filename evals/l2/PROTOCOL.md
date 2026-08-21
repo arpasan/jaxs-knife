@@ -4,8 +4,8 @@ Paired evaluation of the skill: same task, skill off then skill on,
 two solvers (one attempt each), deterministic grade. The harness lives
 under this directory. Live solver trees are not committed.
 
-There is one sealed suite, called **the test**: six tasks, two
-conditions, two solvers (24 jobs).
+There is one isolated suite: six tasks, two conditions, two solvers
+(24 jobs).
 
 ## Design
 
@@ -88,8 +88,8 @@ after seeing a run.
    with `grade_arms.py`.
 3. Rebuild the public aggregate with `evals/l2/summarize_on_off.py`.
    If the grader tree is not a git checkout, pass `--eval-commit` with
-   the skill revision used for the run. A complete public file must
-   not record `unknown`.
+   the commit of the skill that was attached. A complete public file
+   must not record `unknown`.
 4. Keep live trees under gitignored directories, including draws.
 
 Do not write `eval_metadata.json` beside outputs: a file that names the
@@ -99,12 +99,12 @@ values.
 
 Operator steps for a blank-memory host (hide the skill catalog, clear
 user rules, restore afterward) live in the gitignored test tree. A
-short, gold-free checklist is in [OPERATOR.md](OPERATOR.md).
+short operator checklist is in [OPERATOR.md](OPERATOR.md).
 
 ## Reproducibility
 
-**Fixed:** pack CSVs, prompts, grader, rubric, and the skill revision
-used for the run (`eval_commit` in the public file). Local per-cell
+**Fixed:** pack CSVs, prompts, grader, rubric, and the skill tree
+attached for the run (`eval_commit` in `results/on_off.json`). Local per-cell
 JSON records model id, condition, task, commit SHA, date, success
 vector, pass^1, and pass^3.
 
@@ -128,7 +128,7 @@ requires, in addition to the folder seal:
 - standing user rules that encode a Stan/JAX workflow are cleared
 - the host skill catalog does not expose this skill or another
   Bayesian workflow skill
-- the off-arm launch text does not name this skill or tell the solver
+- the skill-absent launch text does not name this skill or tell the solver
   to open `~/.cursor/skills`
 
 The published file states whether those host channels were closed for

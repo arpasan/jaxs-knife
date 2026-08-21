@@ -76,10 +76,8 @@ Positive sample with stated quartiles            2/2              2/2
 Predictor with blank responses                   0/2              2/2
 ```
 
-21 August 2026, skill revision `f718e5c`. One run.
 [`on_off.json`](evals/l2/results/on_off.json) ·
-[notes](evals/l2/results/README.md) ·
-[protocol](evals/l2/PROTOCOL.md).
+[notes](evals/l2/results/README.md).
 
 ## Tests
 

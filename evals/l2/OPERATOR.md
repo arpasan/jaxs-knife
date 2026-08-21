@@ -1,4 +1,4 @@
-# Operator checklist (gold-free)
+# Operator checklist
 
 Solvers open a sealed folder, not the jaxs-knife clone. Do not start a
 solver from a chat that has opened `evals/`.

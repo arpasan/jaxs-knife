@@ -4,7 +4,7 @@ Same six tasks, skill attached vs. left off, one Grok 4.6 attempt and
 one Opus 5 attempt each. A script grades the files the agent wrote.
 `on_off.json` is the published aggregate. Per-attempt files are not.
 
-## 21 August 2026 (`f718e5c`)
+## Scores
 
 ```
 Metric                         Skill absent   Skill attached   Denominator

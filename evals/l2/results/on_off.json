@@ -9,8 +9,7 @@
   ],
   "pass_definition": "an attempt passes when every workflow-checklist predicate holds and the reported 94% interval contains each recorded generating value",
   "notes": [
-    "eval_commit is the skill revision attached for the skill-on attempts.",
-    "One run. Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval."
+    "Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval."
   ],
   "label": "Six isolated benchmark tasks",
   "task_ids": [

@@ -298,8 +298,7 @@ def build_public_on_off(
         "models": list(MODELS),
         "pass_definition": PASS_DEFINITION,
         "notes": [
-            "eval_commit is the skill revision attached for the skill-on attempts.",
-            "One run. Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval.",
+            "Checklist is the workflow write-up; coverage is recorded values inside the reported 94% interval.",
         ],
     }
     payload.update(suite_from_cells(cells, TASK_IDS))

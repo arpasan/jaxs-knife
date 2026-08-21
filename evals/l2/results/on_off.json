@@ -1,10 +1,21 @@
 {
-  "status": "not_yet_run",
+  "status": "complete",
+  "date": "2026-08-21",
+  "eval_commit": "f718e5c882e7dffb645ea7d68daac1ed637417e8",
   "attempts_per_cell": 2,
   "models": [
     "grok-4.6",
     "opus-5"
   ],
+  "pass_definition": "an attempt passes when every workflow-checklist predicate holds and the reported 94% interval contains each recorded generating value",
+  "notes": [
+    "eval_commit is the skill revision attached for the skill-on attempts.",
+    "When the grader tree is not a git checkout, the SHA is supplied at publication.",
+    "Skill-absent attempts used PyMC; skill-attached attempts used Stan via CmdStanPy. The two are not separable in this design.",
+    "The blank-response observation guidance was written in this same revision.",
+    "Three of twelve paired attempts differed, all in the same direction. This is one run, not an effect-size estimate."
+  ],
+  "label": "Six isolated benchmark tasks",
   "task_ids": [
     "E1",
     "H1",
@@ -13,11 +24,91 @@
     "J1",
     "M1"
   ],
-  "pass_definition": "an attempt passes when every workflow-checklist predicate holds and the reported 94% interval contains each recorded generating value",
-  "notes": [
-    "Scores will be written after a sealed skill-off / skill-on run.",
-    "Each cell is one Grok 4.6 attempt and one Opus 5 attempt, not two copies of one model.",
-    "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments.",
-    "The suite is six tasks (24 jobs)."
+  "attempt_successes": {
+    "off": 9,
+    "on": 12,
+    "out_of": 12
+  },
+  "attempt_pass_at_1": {
+    "off": 0.75,
+    "on": 1.0
+  },
+  "tasks_passing_all_attempts": {
+    "off": 4,
+    "on": 6,
+    "out_of": 6
+  },
+  "checklist_successes": {
+    "off": 11,
+    "on": 12,
+    "out_of": 12
+  },
+  "coverage_successes": {
+    "off": 9,
+    "on": 12,
+    "out_of": 12
+  },
+  "coverage_note": "scored on every task; each CSV is accepted only when a naive interval misses the named estimand and a reference interval under the task's observation model covers it",
+  "tasks": [
+    {
+      "id": "E1",
+      "label": "predictor with a reported instrument error",
+      "off_attempts_passing": 1,
+      "off_pass_at_1": 0.5,
+      "off_both_models": 0,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    },
+    {
+      "id": "H1",
+      "label": "grouped observations and a new group",
+      "off_attempts_passing": 2,
+      "off_pass_at_1": 1.0,
+      "off_both_models": 1,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    },
+    {
+      "id": "A1",
+      "label": "assay with a stated false-positive rate",
+      "off_attempts_passing": 2,
+      "off_pass_at_1": 1.0,
+      "off_both_models": 1,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    },
+    {
+      "id": "K1",
+      "label": "two-component sample",
+      "off_attempts_passing": 2,
+      "off_pass_at_1": 1.0,
+      "off_both_models": 1,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    },
+    {
+      "id": "J1",
+      "label": "positive sample with stated quartiles",
+      "off_attempts_passing": 2,
+      "off_pass_at_1": 1.0,
+      "off_both_models": 1,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    },
+    {
+      "id": "M1",
+      "label": "predictor with some blank responses",
+      "off_attempts_passing": 0,
+      "off_pass_at_1": 0.0,
+      "off_both_models": 0,
+      "on_attempts_passing": 2,
+      "on_pass_at_1": 1.0,
+      "on_both_models": 1
+    }
   ]
 }

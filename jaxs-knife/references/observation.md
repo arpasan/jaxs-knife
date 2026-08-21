@@ -3,8 +3,8 @@
 A likelihood is a story about how the file was produced, not only about
 how a marked unit generates a number. Before priors, write the inclusion
 rule. If you cannot say which units appear in the table and why, the
-sampling model is incomplete (Gelman and Vehtari, BDA3, ch. 8;
-Kumar, Martin, and Lao, BMCP §9.3.1).
+sampling model is incomplete (Gelman, Carlin, Stern, Dunson, Vehtari,
+and Rubin, BDA3, ch. 8; Martin, Kumar, and Lao, BMCP §9.3.1).
 
 Ignorability is a claim, not a default. It fails when the chance that a
 row is written depends on the outcome, on a correlate of the outcome, or
@@ -100,7 +100,7 @@ assay's false-positive floor.
 
 Fake-data recovery simulates from *this* program. If the program
 ignores truncation, measurement error, or assay error, recovery will
-happily return the parameters of the wrong story. Use recovery to
+recover the parameters of the wrong story. Use recovery to
 check that the pipeline can see a named estimand. Use the inclusion
 rule, not a successful recovery, to decide whether the observation
 model is the one that generated the file.

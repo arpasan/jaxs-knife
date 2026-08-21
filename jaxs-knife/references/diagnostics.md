@@ -37,7 +37,7 @@ Even a few can bias the posterior. Refuse to interpret. Reparameterize (non-cent
 
 ## Energy (E-BFMI) and treedepth
 
-E-BFMI < 0.3: momentum resampling is sick — usually a funnel or heavy tails. Treedepth saturation: the integrator is hitting the cap; fix geometry before raising `max_treedepth`.
+E-BFMI < 0.3: indicates poor momentum exploration — usually a funnel or heavy tails. Treedepth saturation: the integrator is hitting the cap; fix geometry before raising `max_treedepth`.
 
 ## Visuals
 

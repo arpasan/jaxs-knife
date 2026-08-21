@@ -1,12 +1,12 @@
 ---
 name: jaxs-knife
 description: >
-  Opinionated Bayesian modeling workflow for Stan (CmdStanPy / nutpie[stan]) and
+  Bayesian modeling workflow for Stan (CmdStanPy / nutpie[stan]) and
   JAX (log-density + BlackJAX), sharing ArviZ InferenceData. Encodes the
   Gelman–Vehtari sequence, Stan geometry (non-centered, Jacobian, generated
   quantities, diagnose), and JAX-like-Stan log-density patterns that agents skip
   unprompted. Use when writing or diagnosing .stan programs, CmdStan/CmdStanPy
-  fits, JAX logdensity_fn / BlackJAX NUTS,   hierarchical or funnel geometry,
+  fits, JAX logdensity_fn / BlackJAX NUTS, hierarchical or funnel geometry,
   partial pooling, measurement error, truncation, censoring, missing data, imperfect assays,
   divergences, R-hat, ESS, PSIS-LOO, ELPD, stacking, prior
   predictive checks, or a Bayesian report.md. Do not use for PyMC-only models,
@@ -26,7 +26,7 @@ Every analysis follows this sequence. Do not skip criticism.
 1. **Formulate** — Generative story first. Driving question first. Bayes is optional if counting suffices. How did a row get into the file, and why is a cell blank? [references/observation.md](references/observation.md).
 2. **Specify priors** — [references/priors.md](references/priors.md). Weakly informative. Never `normal(0, 1000)`. Justify every prior. Do not center on a selected slice. Stated quantiles and support are the prior when that is the knowledge.
 3. **Implement** — Pick an engine ([references/engines.md](references/engines.md)), then write the model.
-4. **Prior predictive** — Before MCMC. If draws are nonsense, fix priors first.
+4. **Prior predictive** — Before MCMC. If prior-predictive draws are scientifically implausible, fix priors first.
 5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Recovery cannot bless the observation model. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
@@ -43,8 +43,8 @@ Do not transpile Stan to XLA. Do not treat BridgeStan host-callbacks as a JIT/GP
 |---|---|
 | Likelihood is Stan-shaped; hierarchical GLM; need GQ + `diagnose()`; CPU NUTS; CSV reproducibility | Write Stan. Sample with **nutpie[stan]** if BridgeStan works, else **CmdStanPy NUTS**. Convert to ArviZ. |
 | GPU density, SVI, custom MCMC, or a density Stan cannot express | Write a JAX log-density **like Stan** (constrain, Jacobian, logp, `vmap` GQ) + **BlackJAX**. NumPyro only if plates help. |
-| Same science, two engines | Stan MCMC as gold standard; JAX as the other. Compare in ArviZ. Do not require bit-identical posteriors. |
-| Horrible geometry / slow warmup | Pathfinder or nutpie low-rank+diag mass matrix, **then NUTS**. Label Pathfinder/Laplace as approximations. |
+| Same science, two engines | Use Stan MCMC as a reference computation; JAX as the other. Compare in ArviZ. Do not require bit-identical posteriors. |
+| Difficult posterior geometry / slow warmup | Pathfinder or nutpie low-rank+diag mass matrix, **then NUTS**. Label Pathfinder/Laplace as approximations. |
 | Simulator, no tractable likelihood | Out of scope. Do not substitute ABC. |
 
 ## Installation
@@ -57,7 +57,7 @@ mamba env create -f environment.yml
 python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.39.0')"
 ```
 
-If nutpie/BridgeStan fails, fall back to `model.sample()` in CmdStanPy. Do not rewrite the model in NumPyro for fashion.
+If nutpie/BridgeStan fails, fall back to `model.sample()` in CmdStanPy. Do not rewrite the model in NumPyro unless plates are required.
 
 Minimum versions: CmdStan 2.39, CmdStanPy 1.3, BridgeStan 2.9 (nutpie may fetch 2.8), nutpie 0.16.11, BlackJAX 1.6.2.
 
@@ -156,7 +156,7 @@ python scripts/calibration_check.py --idata <slug>/inference_data.nc --output <s
 python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --calibration <slug>/calibration.json --output <slug>/check_report.json
 ```
 
-## Common gotchas
+## Common failure modes
 
 - **HalfCauchy / HalfFlat on hierarchical scales** → funnel. Use `exponential` or `gamma` and non-centered when groups are weakly identified.
 - **Missing Jacobian** on a sampled transform → wrong posterior. Prefer `<lower=0>` decls.

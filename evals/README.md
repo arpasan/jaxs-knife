@@ -32,7 +32,7 @@ gitignored.
 
 ## Tasks and prompts
 
-`evals/l2/packs/` holds the six sealed tasks (E1, H1, A1, K1, J1, M1).
+`evals/l2/packs/` holds the six isolated tasks (E1, H1, A1, K1, J1, M1).
 Each folder contains `prompt.md` and `data.csv`. Generating values live
 in `meta.json` and are not copied into an agent workspace. The packs
 are not copied into the skill.

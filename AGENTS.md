@@ -16,10 +16,11 @@ Gitignored local working directories (not in a clone):
 - `.local/` — internal working trees
 - `stan_models/` — CmdStan compile cache
 
-The sealed evaluation lives under `.local/test/` when it is run.
-Operator notes for that tree stay there; a gold-free checklist is
-`evals/l2/OPERATOR.md`. Do not treat leftover directories under
-`.local/` as the test.
+A live run uses separate top-level solver and grader directories
+outside this repository. Completed run archives may be retained under
+`.local/runs/<date>/`. Operator notes for that archive stay there; a
+gold-free checklist is `evals/l2/OPERATOR.md`. Do not treat leftover
+directories under `.local/` as the next test.
 
 An isolated solver is a fresh agent whose working directory is one
 attempt folder (`rep-*`) containing only the files that attempt is

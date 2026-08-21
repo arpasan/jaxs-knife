@@ -23,7 +23,7 @@ TASK_LABELS: Dict[str, str] = {
     "J1": "positive sample with stated quartiles",
     "M1": "predictor with some blank responses",
 }
-SUITE_LABEL = "Six sealed tasks"
+SUITE_LABEL = "Six isolated benchmark tasks"
 MODELS: Tuple[str, ...] = ("grok-4.6", "opus-5")
 ATTEMPTS_PER_CELL = 2
 COVERAGE_NOTE = (
@@ -93,8 +93,32 @@ def _bool_flags(cell: Mapping[str, Any], *keys: str) -> List[bool]:
     return []
 
 
+def _eval_commit_ok(value: str) -> bool:
+    """True when ``value`` looks like a git SHA, not a placeholder."""
+    text = str(value or "").strip().lower()
+    if text in {"", "unknown", "none"}:
+        return False
+    return bool(len(text) >= 7 and len(text) <= 40 and all(
+        ch in "0123456789abcdef" for ch in text
+    ))
+
+
+def _commit_matches(supplied: str, known: Sequence[str]) -> bool:
+    """True when ``supplied`` is the same revision as a known cell SHA."""
+    left = str(supplied or "").strip().lower()
+    if not _eval_commit_ok(left):
+        return False
+    for raw in known:
+        right = str(raw or "").strip().lower()
+        if not _eval_commit_ok(right):
+            continue
+        if left == right or left.startswith(right) or right.startswith(left):
+            return True
+    return False
+
+
 def pending_public_on_off() -> Dict[str, Any]:
-    """Public document used before a sealed batch has been graded."""
+    """Public document used before a skill-absent / skill-attached batch has been graded."""
     return {
         "status": "not_yet_run",
         "attempts_per_cell": ATTEMPTS_PER_CELL,
@@ -102,9 +126,8 @@ def pending_public_on_off() -> Dict[str, Any]:
         "task_ids": list(TASK_IDS),
         "pass_definition": PASS_DEFINITION,
         "notes": [
-            "Scores will be written after a sealed skill-off / skill-on run.",
+            "Scores will be written after a skill-absent / skill-attached run.",
             "Each cell is one Grok 4.6 attempt and one Opus 5 attempt, not two copies of one model.",
-            "A prior sealed run was withdrawn: the instrument-error coverage screen pinned generating latent moments.",
             "The suite is six tasks (24 jobs).",
         ],
     }
@@ -114,7 +137,7 @@ def suite_from_cells(
     cells: Mapping[Tuple[str, str], Mapping[str, Any]],
     pack_ids: Sequence[str],
 ) -> Dict[str, Any]:
-    """Aggregate the sealed suite. Drops solver ids and per-attempt dumps.
+    """Aggregate the isolated suite. Drops solver ids and per-attempt dumps.
 
     Parameters
     ----------
@@ -225,6 +248,7 @@ def load_suite_cells(
 def build_public_on_off(
     *,
     cell_dir: Path = DEFAULT_CELL_DIR,
+    eval_commit: Optional[str] = None,
     logger: Optional[logging.Logger] = None,
 ) -> Dict[str, Any]:
     """Assemble the public score document from a completed batch.
@@ -232,7 +256,11 @@ def build_public_on_off(
     Parameters
     ----------
     cell_dir : Path
-        Per-cell JSON for the five sealed tasks.
+        Per-cell JSON for the six isolated tasks.
+    eval_commit : str, optional
+        Skill revision to record. Required when the grader tree was not
+        a git checkout and the cells say ``unknown``. Refused when it
+        conflicts with a known cell SHA.
     logger : logging.Logger, optional
         Injected logger.
 
@@ -252,15 +280,29 @@ def build_public_on_off(
         raise ValueError(f"mixed or missing eval commits: {sorted(commits)}")
     if len(dates) != 1:
         raise ValueError(f"mixed or missing eval dates: {sorted(dates)}")
+    derived = next(iter(commits))
+    if eval_commit is not None:
+        known = [c for c in commits if _eval_commit_ok(c)]
+        if known and not _commit_matches(eval_commit, known):
+            raise ValueError(
+                f"eval_commit {eval_commit} conflicts with cell git {sorted(known)}"
+            )
+        sha = str(eval_commit).strip()
+    else:
+        sha = derived
     payload = {
         "status": "complete",
         "date": next(iter(dates)),
-        "eval_commit": next(iter(commits)),
+        "eval_commit": sha,
         "attempts_per_cell": ATTEMPTS_PER_CELL,
         "models": list(MODELS),
         "pass_definition": PASS_DEFINITION,
         "notes": [
-            "eval_commit is the skill revision used for the runs.",
+            "eval_commit is the skill revision attached for the skill-on attempts.",
+            "When the grader tree is not a git checkout, the SHA is supplied at publication.",
+            "Skill-absent attempts used PyMC; skill-attached attempts used Stan via CmdStanPy. The two are not separable in this design.",
+            "The blank-response observation guidance was written in this same revision.",
+            "Three of twelve paired attempts differed, all in the same direction. This is one run, not an effect-size estimate.",
         ],
     }
     payload.update(suite_from_cells(cells, TASK_IDS))
@@ -344,6 +386,8 @@ def validate_public_on_off(
         problems.append("public file must not contain a solver field")
     if status == "not_yet_run":
         return problems
+    if not _eval_commit_ok(str(payload.get("eval_commit") or "")):
+        problems.append("eval_commit must be a git SHA, not unknown")
     for key in REQUIRED_SUITE_KEYS:
         if key not in payload:
             problems.append(f"missing {key}")
@@ -403,6 +447,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument("--out", type=Path, default=PUBLIC_PATH)
     parser.add_argument(
+        "--eval-commit",
+        default=None,
+        help="skill revision SHA when the grader tree is not a git checkout",
+    )
+    parser.add_argument(
         "--pending",
         action="store_true",
         help="write the not-yet-run public document",
@@ -416,7 +465,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(str(args.out))
         return 0
     payload = pending_public_on_off() if args.pending else build_public_on_off(
-        cell_dir=args.cell_dir
+        cell_dir=args.cell_dir,
+        eval_commit=args.eval_commit,
     )
     problems = validate_public_on_off(payload)
     if problems:

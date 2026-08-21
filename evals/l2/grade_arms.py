@@ -117,6 +117,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--on-grok", type=Path, required=True)
     parser.add_argument("--on-opus", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--git",
+        default=None,
+        help="skill revision SHA; do not rely on git rev-parse from an archived tree",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
     named = {
         "off-grok": args.off_grok,
@@ -128,7 +133,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     for key, path in named.items():
         arms[key] = grade_flat_arm(path)
     cell_dir = args.out / "cells"
-    write_cells(arms, cell_dir)
+    write_cells(arms, cell_dir, git=args.git)
     (args.out / "arms.json").write_text(
         json.dumps({k: {p: arms[k][p]["passed"] for p in TASK_IDS} for k in named}, indent=2)
         + "\n",

@@ -33,7 +33,7 @@ Enable `jax.config.update("jax_enable_x64", True)` before constructing the densi
 
 Before trusting a hand-written `logdensity_fn`, check finite-difference vs. autodiff gradients and log-density agreement up to a constant against an independent reference (Stan, a tested bijector, or a second implementation). Prefer a tested bijector to a hand-rolled transform.
 
-BlackJAX is a sampler library, not a PPL. You owe it a `logdensity_fn`.
+BlackJAX is a sampler library, not a PPL. It requires an explicit `logdensity_fn`.
 
 NumPyro is optional when plates help. Override the classic 8-schools HalfCauchy example.
 

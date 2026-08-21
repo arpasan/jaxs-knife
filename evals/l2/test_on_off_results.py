@@ -37,10 +37,13 @@ def test_pending_document_validates() -> None:
 def test_rebuild_matches_committed_when_local_cells_exist() -> None:
     if not per_cell_trees_available(DEFAULT_CELL_DIR):
         pytest.skip("local per-cell score files are not present")
-    rebuilt = build_public_on_off(cell_dir=DEFAULT_CELL_DIR)
     committed = json.loads(PUBLIC_PATH.read_text(encoding="utf-8"))
     if committed.get("status") != "complete":
         pytest.skip("committed public file is still not_yet_run")
+    rebuilt = build_public_on_off(
+        cell_dir=DEFAULT_CELL_DIR,
+        eval_commit=str(committed["eval_commit"]),
+    )
     for key in (
         "status",
         "date",
@@ -51,6 +54,27 @@ def test_rebuild_matches_committed_when_local_cells_exist() -> None:
         "attempt_successes",
     ):
         assert rebuilt[key] == committed[key]
+
+
+def test_complete_rejects_unknown_eval_commit() -> None:
+    payload = pending_public_on_off()
+    payload.update(
+        {
+            "status": "complete",
+            "date": "2026-08-21",
+            "eval_commit": "unknown",
+            "label": "x",
+            "attempt_successes": {"off": 0, "on": 0, "out_of": 12},
+            "attempt_pass_at_1": {"off": 0.0, "on": 0.0},
+            "tasks_passing_all_attempts": {"off": 0, "on": 0, "out_of": 6},
+            "checklist_successes": {"off": 0, "on": 0, "out_of": 12},
+            "coverage_successes": {"off": 0, "on": 0, "out_of": 12},
+            "coverage_note": "x",
+            "tasks": [],
+        }
+    )
+    problems = validate_public_on_off(payload)
+    assert any("eval_commit" in item for item in problems)
 
 
 def test_sealed_tasks_are_on_disk() -> None:

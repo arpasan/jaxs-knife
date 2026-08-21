@@ -32,7 +32,7 @@ Do not stack three likelihood changes in one refit.
 
 ## Predict at new X
 
-New covariates go through `generate_quantities` (Stan) or `vmap` (JAX) on the fitted draws. Do not rebuild a likelihood in numpy. There is no NLPD leaderboard and no `test.csv` ritual — if the user did not hold out a prediction set, do not invent one.
+New covariates go through `generate_quantities` (Stan) or `vmap` (JAX) on the fitted draws. Do not rebuild a likelihood in numpy. There is no held-out scoreboard — if the user did not hold out a prediction set, do not invent one.
 
 ## PSIS-LOO (single-model)
 

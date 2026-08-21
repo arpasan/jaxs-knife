@@ -44,8 +44,8 @@ ordered constraints, Jacobian, truncation syntax, attenuation,
 Tobit, JQPD). They do not name this skill.
 
 The workflow checklist is engine-neutral. A PyMC or other density
-language that writes the same scientific steps is not failed for
-engine fashion. Coverage is on the named estimands. A1 has no
+language that writes the same scientific steps is not failed for the
+library used. Coverage is on the named estimands. A1 has no
 positive scale, so `constraint_ok` is skipped there (`band_a_skip`).
 
 ## Grading
@@ -87,6 +87,9 @@ after seeing a run.
 2. A fifth tree holds a copy of this harness and writes cell JSON
    with `grade_arms.py`.
 3. Rebuild the public aggregate with `evals/l2/summarize_on_off.py`.
+   If the grader tree is not a git checkout, pass `--eval-commit` with
+   the skill revision used for the run. A complete public file must
+   not record `unknown`.
 4. Keep live trees under gitignored directories, including draws.
 
 Do not write `eval_metadata.json` beside outputs: a file that names the

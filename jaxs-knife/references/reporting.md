@@ -23,7 +23,7 @@ Optional: `pit_ecdf.png` from `az.plot_loo_pit` (not from
 
 ## Interval policy
 
-No width is magic. Default: **50% typical + 94% range** (HDI). 80% HDI is notebook ink, not the scientific default. Do not mix HDI with ArviZ bare ETI defaults without saying so.
+No width is magic. Default: **50% typical + 94% range** (HDI). 80% HDI is a visualization convention, not the scientific default. Do not mix HDI with ArviZ bare ETI defaults without saying so.
 
 An HDI is not invariant to reparameterization (Vehtari, BDA3 notes).
 If you report a ratio, an odds, or an inverse-link dose, compute the

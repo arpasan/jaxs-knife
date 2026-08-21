@@ -18,7 +18,7 @@ Each InferenceData needs pointwise `log_likelihood` from the fully normalized `_
 
 If Pareto-k is bad, do not compare ELPDs. Fix the model or use K-fold. Moment matching needs a callable log density and unconstrained draws — a CmdStanPy CSV does not carry those. On the Stan path, K-fold is the actionable next step.
 
-**Stacking** when there is no winner (Yao et al.). Report weights, not a fake champion.
+**Stacking** when there is no winner (Yao, Vehtari, Simpson, and Gelman, 2018). Report weights, not a spurious winner.
 
 WAIC: only if you cannot compute PSIS-LOO. Say so.
 

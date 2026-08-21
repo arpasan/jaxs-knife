@@ -33,5 +33,6 @@ The skill folder that Cursor attaches is the inner skill directory, not
 the repository root. Do not clone the public repository as a solver
 workspace.
 
-Launch paste-blocks for the five windows live in the operator chat,
-not in this repository and not under `.local/test/`.
+Exact launch text is retained only in the gitignored run archive
+(`.local/runs/<date>/RECIPE.md`). It is never placed in a tracked
+file and never copied into a solver workspace.

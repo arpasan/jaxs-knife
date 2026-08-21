@@ -6,7 +6,7 @@ Priors encode domain knowledge. The goal is not to be "non-informative." Every p
 
 Weakly informative is the default: rule out nonsense, do not strongly favor one reasonable value.
 
-Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass on absurd scales and wreck HMC.
+Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass on implausible scales and can destabilize HMC.
 
 ## Defaults (Stan syntax; JAX uses the same families)
 

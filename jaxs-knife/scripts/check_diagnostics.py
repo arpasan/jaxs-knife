@@ -30,9 +30,15 @@ PSENSE_FAIR = 0.10
 # ==================================================
 
 
-def _rate_convergence(conv: Dict[str, Any]) -> Tuple[str, List[str]]:
-    """Return (rating, problematic_param_names) for convergence."""
-    if not conv or conv.get("all_ok"):
+def _rate_convergence(conv: Optional[Dict[str, Any]]) -> Tuple[str, List[str]]:
+    """Return (rating, problematic_param_names) for convergence.
+
+    Only an explicit ``all_ok`` flag rates excellent. An empty or missing
+    block is ``unknown`` and must not be treated as a pass.
+    """
+    if not isinstance(conv, dict) or len(conv) == 0:
+        return "unknown", []
+    if conv.get("all_ok"):
         return "excellent", []
 
     issues: List[str] = []
@@ -58,6 +64,9 @@ def _rate_convergence(conv: Dict[str, Any]) -> Tuple[str, List[str]]:
         issues.append("low E-BFMI")
     if not td.get("ok", True):
         issues.append("max treedepth saturation")
+    floor = conv.get("chain_floor")
+    if isinstance(floor, dict) and floor.get("ok") is False:
+        issues.append("n_chains<4")
 
     issues = list(dict.fromkeys(issues))
     n_div = div.get("count") if div else 0
@@ -154,6 +163,11 @@ def _build_summary(report: Dict[str, Any]) -> Dict[str, str]:
                 f"Convergence is fair — flags on {params}. "
                 "Do not trust the posterior until inspected."
             )
+        elif rating == "unknown":
+            summary["convergence"] = (
+                "Convergence block is missing or empty — rating unknown. "
+                "Do not treat this as a pass."
+            )
         else:
             params = ", ".join(report["convergence"]["problematic_params"][:3]) or (
                 "multiple parameters"
@@ -205,11 +219,15 @@ def check_diagnostics(
     """
     report: Dict[str, Any] = {}
     if diagnostics is not None:
-        conv_rating, conv_issues = _rate_convergence(diagnostics.get("convergence", {}))
-        report["convergence"] = {
+        conv_in = diagnostics.get("convergence", {})
+        conv_rating, conv_issues = _rate_convergence(conv_in)
+        convergence: Dict[str, Any] = {
             "rating": conv_rating,
             "problematic_params": conv_issues,
         }
+        if isinstance(conv_in, dict) and isinstance(conv_in.get("chain_floor"), dict):
+            convergence["chain_floor"] = conv_in["chain_floor"]
+        report["convergence"] = convergence
         loo_in = diagnostics.get("loo", {})
         report["loo"] = {
             "rating": _rate_loo(loo_in),
@@ -242,10 +260,30 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
     """
     steps: List[str] = []
     conv = report.get("convergence", {})
-    if conv.get("rating") in ("poor", "fair"):
+    if not isinstance(conv, dict):
+        conv = {}
+    floor = conv.get("chain_floor")
+    params_now = conv.get("problematic_params") or []
+    floor_failed = (isinstance(floor, dict) and floor.get("ok") is False) or any(
+        "n_chains<4" in str(param) for param in params_now
+    )
+    if floor_failed:
+        n_chains = floor.get("n_chains") if isinstance(floor, dict) else None
+        counted = f"n_chains={n_chains}" if n_chains is not None else "n_chains"
+        steps.append(
+            f"NUTS/MCMC ESS gate failed: {counted} is below 4. "
+            "Between-chain disagreement is invisible below 4 chains. "
+            "Pathfinder, VI, and Laplace are exempt only when that method is labeled."
+        )
+    if conv.get("rating") == "unknown":
+        steps.append(
+            "Convergence block is missing or empty — rating unknown. "
+            "Do not interpret the posterior and do not treat the fit as excellent."
+        )
+    elif conv.get("rating") in ("poor", "fair"):
         params = conv.get("problematic_params", [])
         has_divergences = any("divergence" in str(p).lower() for p in params)
-        non_param = ("divergence", "e-bfmi", "treedepth", "=")
+        non_param = ("divergence", "e-bfmi", "treedepth", "=", "n_chains")
         named_params = [
             p for p in params if not any(tok in str(p).lower() for tok in non_param)
         ]
@@ -281,8 +319,8 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
             )
         elif "under-confident" in diag:
             steps.append(
-                "Calibration is under-confident — tighten priors that dominate, "
-                "or simplify an overparameterized model."
+                "Single-dataset over-coverage; not a prior-tuning signal. "
+                "Check observation model / SBC for coverage."
             )
         else:
             steps.append(

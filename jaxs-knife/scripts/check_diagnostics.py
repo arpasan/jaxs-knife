@@ -30,9 +30,15 @@ PSENSE_FAIR = 0.10
 # ==================================================
 
 
-def _rate_convergence(conv: Dict[str, Any]) -> Tuple[str, List[str]]:
-    """Return (rating, problematic_param_names) for convergence."""
-    if not conv or conv.get("all_ok"):
+def _rate_convergence(conv: Optional[Dict[str, Any]]) -> Tuple[str, List[str]]:
+    """Return (rating, problematic_param_names) for convergence.
+
+    An empty or missing block is ``unknown`` (a failure). Only a truthy
+    ``all_ok`` is excellent.
+    """
+    if not conv:
+        return "unknown", ["convergence=unknown"]
+    if conv.get("all_ok"):
         return "excellent", []
 
     issues: List[str] = []
@@ -98,16 +104,61 @@ def _rate_loo(loo: Dict[str, Any]) -> str:
     return "poor"
 
 
+def _signed_deviation(value: Any) -> float:
+    """Coerce a coverage deviation to float. Missing or junk is 0."""
+    if value is None:
+        return 0.0
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _diagnosis_says_over_coverage(diagnosis: str) -> bool:
+    """True when the label is over-coverage (intervals wider than nominal).
+
+    ``calibration_check`` words that case ``under-confident``. Over-confident
+    labels are not over-coverage.
+    """
+    text = diagnosis.lower()
+    if "over-confident" in text or "too certain" in text:
+        return False
+    return (
+        "under-confident" in text
+        or "over-coverage" in text
+        or "over coverage" in text
+        or "too uncertain" in text
+    )
+
+
+def _is_over_coverage(diagnosis: str, signed_dev: float) -> bool:
+    """Over-coverage from the diagnosis text or a positive coverage error."""
+    if _diagnosis_says_over_coverage(diagnosis):
+        return True
+    if "over-confident" in diagnosis.lower() or "too certain" in diagnosis.lower():
+        return False
+    return signed_dev > 0.0
+
+
 def _rate_calibration(cal: Dict[str, Any]) -> Tuple[str, str]:
-    """Return (rating, diagnosis) for calibration."""
+    """Return (rating, diagnosis) for calibration.
+
+    Single-dataset over-coverage is not rated ``poor`` by itself.
+    """
     if not cal:
         return "not computed", ""
     assessment = cal.get("assessment", {})
-    diagnosis = assessment.get("calibration_diagnosis", "")
+    diagnosis = str(assessment.get("calibration_diagnosis", "") or "")
     well_cal = assessment.get("well_calibrated", False)
-    mean_dev = abs(assessment.get("mean_coverage_deviation", 0.0))
+    signed_dev = _signed_deviation(assessment.get("mean_coverage_deviation", 0.0))
+    mean_dev = abs(signed_dev)
     if well_cal:
         return "excellent", diagnosis
+    # Positive coverage error is over-coverage. It does not rate as poor.
+    if _is_over_coverage(diagnosis, signed_dev):
+        if not _diagnosis_says_over_coverage(diagnosis):
+            diagnosis = "over-coverage"
+        return "fair", diagnosis
     if mean_dev <= COVERAGE_DEVIATION_FAIR:
         return "fair", diagnosis
     return "poor", diagnosis
@@ -153,6 +204,11 @@ def _build_summary(report: Dict[str, Any]) -> Dict[str, str]:
             summary["convergence"] = (
                 f"Convergence is fair — flags on {params}. "
                 "Do not trust the posterior until inspected."
+            )
+        elif rating == "unknown":
+            summary["convergence"] = (
+                "Convergence diagnostics are missing or empty (unknown). "
+                "Do not interpret the posterior."
             )
         else:
             params = ", ".join(report["convergence"]["problematic_params"][:3]) or (
@@ -242,7 +298,12 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
     """
     steps: List[str] = []
     conv = report.get("convergence", {})
-    if conv.get("rating") in ("poor", "fair"):
+    if conv.get("rating") == "unknown":
+        steps.append(
+            "Convergence block is missing or empty — rating unknown. "
+            "Do not interpret the posterior."
+        )
+    elif conv.get("rating") in ("poor", "fair"):
         params = conv.get("problematic_params", [])
         has_divergences = any("divergence" in str(p).lower() for p in params)
         non_param = ("divergence", "e-bfmi", "treedepth", "=")
@@ -271,18 +332,21 @@ def suggest_next_steps(report: Dict[str, Any]) -> List[str]:
             )
 
     cal = report.get("calibration", {})
-    if cal.get("rating") == "poor":
-        diag = cal.get("diagnosis", "")
+    diag = str(cal.get("diagnosis", "") or "")
+    if _diagnosis_says_over_coverage(diag) and cal.get("rating") not in {
+        "excellent",
+        "not computed",
+    }:
+        steps.append(
+            "Single-dataset over-coverage; not a prior-tuning signal. "
+            "Check observation model / SBC for coverage."
+        )
+    elif cal.get("rating") == "poor":
         if "over-confident" in diag:
             steps.append(
                 "Calibration is over-confident — likelihood too narrow. "
                 "Student-t for heavy tails, neg_binomial for overdispersed counts, "
                 "or hierarchical variance if groups differ."
-            )
-        elif "under-confident" in diag:
-            steps.append(
-                "Calibration is under-confident — tighten priors that dominate, "
-                "or simplify an overparameterized model."
             )
         else:
             steps.append(

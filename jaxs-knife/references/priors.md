@@ -21,6 +21,8 @@ Never `normal(0, 1000)` or `cauchy(0, 100)`. Those are not "flat"; they put mass
 | Student-t ν | `gamma(2, 0.1)` | Keeps ν out of the degenerate tail |
 | Ordered cutpoints | `ordered` vector + normal | Identifiability |
 
+With many predictors, independent `normal(0, 2.5)` implies extreme p; use joint or shrinkage priors (Sparsity §).
+
 ## Prior predictive (mandatory, before MCMC)
 
 Prefer a `prior_only` data flag in the **same** program so the prior predictive cannot drift from the fitted model. Stan: `generated quantities` with `*_rng` and no conditioning on `y` when `prior_only` is set. JAX: `vmap` the observation model over prior draws of unconstrained parameters (after `constrain`).

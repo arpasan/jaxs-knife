@@ -14,7 +14,7 @@ description: >
   DiD / RDD, or simulation-based inference / BayesFlow.
 license: MIT
 metadata:
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # jaxs-knife

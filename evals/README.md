@@ -36,3 +36,11 @@ gitignored.
 Each folder contains `prompt.md` and `data.csv`. Generating values live
 in `meta.json` and are not copied into an agent workspace. The packs
 are not copied into the skill.
+
+## Protocol
+
+The suite is 24 jobs: six packs, off then on, Grok 4.7 and Opus 5.5.
+The trigger grader is outside Δ (score change attribution). Infra
+errors are rerun and are not counted. Pin the model and the judge.
+A should-not-trigger case goes in an existing pack. No new packs
+this cycle. Flag 1.0/1.0 cells. Bash goes in `--allow-tools`.

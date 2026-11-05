@@ -13,6 +13,9 @@ Do **not** reimplement the likelihood in numpy after a Stan fit.
 
 Look at shape, spread, tails, and decision-relevant functionals — not a posterior-predictive *p*-value as a hypothesis test (Vehtari BDA3 notes).
 
+Binary or count `y`: a bar chart, a rootogram, or a calibration plot; not a KDE or LOO-PIT.
+A KDE or LOO-PIT assumes a continuous predictive distribution.
+
 Decision functionals (contrasts, ratios, inverse-link doses) belong in `generated quantities` or `vmap`, computed from the same parameters as the fit. Do not reconstruct them in numpy after the fact.
 
 When the PPC misses the data, pick the repair from the **observed** misfit, then change one thing and refit.
@@ -50,8 +53,8 @@ Requires pointwise `log_likelihood` on the InferenceData (Stan `log_lik` in GQ, 
 
 `p_loo` ≫ parameter count → misspecification or priors too weak.
 
-LOO-PIT (`az.plot_loo_pit`) is the calibration view of the predictive
-distribution. A systematic S-shape or slope is misfit in spread or
+LOO-PIT (`az.plot_loo_pit`) is the calibration view of a continuous predictive
+distribution, not of binary or count `y`. A systematic S-shape or slope is misfit in spread or
 location. It is not the same object as
 `scripts/calibration_check.py`, which scores nominal HDI coverage of
 this dataset's observations.
@@ -74,7 +77,9 @@ Recovery cannot bless the observation model. If the program omits
 truncation, measurement error, or an assay error rate, a successful
 recovery only shows that the wrong story is internally consistent. The
 inclusion rule is decided before this step ([observation.md](observation.md)).
+If the posterior in recovery is approximately the prior, the parameter is unused or unidentified, or the design does not inform it: report prior-dominated, not a failed recovery.
 
 ## SBC
 
 For a **new** implementation (new JAX density, new constraint). Too expensive for every routine GLM. Histogram of posterior ranks of known parameters should be uniform.
+If SBC is slow, a few sims beat none; ranks at 1 or S+1, or an extreme z, already flag a bug; SBC submodels.

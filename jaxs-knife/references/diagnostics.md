@@ -17,12 +17,13 @@ When the fit is CmdStan, also run `fit.diagnose()` / `cmdstan diagnose` for ener
 | R-hat | Action |
 |---|---|
 | ≤ 1.01 | Proceed |
-| 1.01–1.05 | Run longer; investigate |
+| 1.01–1.05 | Investigate first (pairs, init, multimodality, identification); more draws only if slow but unimodal |
 | > 1.05 | Do not use the posterior |
 
 ## ESS
 
 Bulk (means) and tail (intervals) both matter.
+If tail-ESS ≪ bulk-ESS, that means a tail problem.
 
 | ESS | Action |
 |---|---|
@@ -33,7 +34,7 @@ Gate ESS on the interval you print (tail ESS for a 94% HDI), not only a global c
 
 ## Divergences
 
-Even a few can bias the posterior. Refuse to interpret. Reparameterize (non-centered, Jacobian, QR), **then** raise `adapt_delta` / `target_accept` to 0.95–0.99. Raising adapt first is a last resort.
+Even a few can bias the posterior. Refuse to interpret. Non-centered; constrained declaration; `adapt_delta` / `target_accept` 0.95–0.99 only if divergences are ≲1%. Above that, fix geometry.
 
 ## Energy (E-BFMI) and treedepth
 
@@ -46,3 +47,4 @@ E-BFMI < 0.3: indicates poor momentum exploration — usually a funnel or heavy 
 ## Identifiability
 
 If two components always appear together in the likelihood, only their sum is identified. Merge them or restructure the data. Discrete latents and mixtures: [mixtures.md](mixtures.md). Label switching is not cured by more draws.
+Huge intercept SD, abundant data, and no warnings: Stan `sum_to_zero_vector` (no multiplier); JAX equivalent constrained transform.

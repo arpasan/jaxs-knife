@@ -111,7 +111,7 @@ tracks prior scale and reintroduces an accept/reject frame.
 |-------|------|----|-------|--------|
 | <a> | <> | <> | <> | <> |
 
-**Assessment:** <ΔELPD vs 2 × dSE; prefer simpler if indistinguishable.>
+**Assessment:** <ΔELPD vs 2 × dSE. Indistinguishable: LOO can't choose; keep the model the estimand needs; report both or stack.>
 
 ## [IF SENSITIVITY] Prior Sensitivity
 

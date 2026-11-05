@@ -5,6 +5,7 @@ Same scientific workflow. Different log-density languages. ArviZ is the meeting 
 ## When to write Stan
 
 Hierarchical GLMs, need generated quantities and `diagnose()`, CPU NUTS, CSV reproducibility. Sample with nutpie[stan] if BridgeStan compiles; else CmdStanPy `sample()`.
+Compile with pedantic mode: cmdstanr `pedantic=TRUE`; CmdStanPy `stanc_options={"warn-pedantic": True}`.
 
 Stan constrained declarations (`<lower=0>`) add the Jacobian automatically.
 

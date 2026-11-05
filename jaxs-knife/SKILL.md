@@ -30,7 +30,7 @@ Every analysis follows this sequence. Do not skip criticism.
 5. **Fake-data recovery** — Simulate from *this* model at known values, fit, and confirm the named estimand is in the **reported** interval. The recovery fit must pass the same diagnose gates. One recovery is not coverage. Recovery cannot bless the observation model. Only then fit the real data.
 6. **Inference** — Sample; save draws immediately.
 7. **Diagnose** — [references/diagnostics.md](references/diagnostics.md). Refuse to interpret a bad geometry.
-8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals live there too. LOO-PIT for spread and location, not a KDE of the mean. If criticism names a different observation rule, that program is the next fit, not a limitations sentence.
+8. **Criticize** — [references/model-criticism.md](references/model-criticism.md). PPC in generated quantities (Stan) or `vmap` (JAX). Decision functionals too. Binary/count y: bar/rootogram or calibration plot; not KDE or LOO-PIT. If criticism names another observation rule, that program is the next fit, not a limitations sentence.
 9. **Sensitivity** — [references/sensitivity.md](references/sensitivity.md) when conclusions are decision-relevant.
 10. **Compare** — [references/model-comparison.md](references/model-comparison.md) if two or more models. PSIS-LOO over WAIC.
 11. **Report** — `<slug>/report.md` from [references/reporting.md](references/reporting.md). Ratings from `scripts/check_diagnostics.py`, not asserted.
@@ -132,13 +132,13 @@ Sample with BlackJAX NUTS. Land draws in ArviZ via `scripts/to_inference_data.py
 - Prior predictive **before** sampling. Prefer a `prior_only` data flag in the same program over a second, drifted copy.
 - Fake-data recovery **before** the real fit: known parameters in, named estimand in the reported interval, recovery fit clears the same gates. One run is not coverage. A recovery from the fitted program does not validate the inclusion rule.
 - Rank-normalized split R-hat ≤ 1.01; > 1.05 do not interpret. ESS bulk and tail ≥ 100 × n_chains. Gate ESS on the interval you print.
-- Divergences: refuse to interpret. A missing `sample_stats.diverging` flag is unknown, not zero. Reparameterize, then raise `adapt_delta` / `target_accept`.
+- Divergences: refuse to interpret. A missing `sample_stats.diverging` flag is unknown, not zero. Non-centered; constrained decl; `adapt_delta` / `target_accept` 0.95–0.99 only if divergences ≲1%; above that, fix geometry.
 - E-BFMI and treedepth are first-class (`cmdstan diagnose` when the fit is CmdStan).
 - Constrained Stan declarations auto-adjust the Jacobian. Sampling a **transform** of a parameter needs `jacobian +=`.
 - Write JAX like Stan: constrain, Jacobian, log density, `vmap` GQ. Enable `jax_enable_x64` before constructing the density.
 - Pathfinder / Laplace / ADVI are approximations or NUTS inits unless labeled otherwise.
 - PPC *p*-values are not hypothesis tests. PSIS-LOO over WAIC. Pareto-k < 0.5 trust; 0.5–0.7 investigate; ≥ 0.7 K-fold (moment matching needs a callable density, not a CmdStan CSV).
-- ΔELPD < 2 × dSE → indistinguishable; prefer the simpler model. Stacking when there is no winner. LOO is not NHST.
+- ΔELPD < 2 × dSE → Indistinguishable: LOO can't choose; keep the model the estimand needs; report both or stack. LOO is not NHST.
 - Power-scaling CJS > 0.05 is a flag to document, not a command to loosen priors.
 - Posterior **mean** of predictive probabilities, never median.
 - Probability language. Never “significant” / p-values. Prefer prior-to-posterior movement over a Bayes factor.
@@ -181,8 +181,8 @@ python scripts/check_diagnostics.py --diagnostics <slug>/diagnostics.json --cali
 |---|---|---|
 | Init fail / NaN logp | Data, bounds, or precision | Fix decls / dtypes / init; `jax_enable_x64`. Not `adapt_delta` |
 | Missing `diverging` | JAX stats not stored | Store `is_divergent` as `diverging`. Missing ≠ 0 |
-| Divergences | Funnel / missing Jacobian / bad scales | Non-centered; constrained decl; then `adapt_delta` 0.95–0.99 |
-| R-hat > 1.01 | Poor mixing / multimodality | More draws; Pathfinder init; pair plots |
+| Divergences | Funnel / missing Jacobian / bad scales | Non-centered; constrained decl; `adapt_delta` 0.95–0.99 only if divergences ≲1%; above that, fix geometry |
+| R-hat > 1.01 | Poor mixing / multimodality | Investigate first (pairs, init, multimodality, identification); more draws only if slow but unimodal |
 | Label-switching R-hat | Unordered mixture | `ordered[K]` / `log_mix`; [mixtures.md](references/mixtures.md) |
 | Low ESS | Autocorrelation | Reparameterize; QR if `X` is collinear |
 | Treedepth saturation | Difficult geometry | Reparameterize before raising `max_treedepth` |

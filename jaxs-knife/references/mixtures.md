@@ -4,15 +4,16 @@ Stan cannot declare discrete parameters. Marginalize. Do not sample a latent cla
 
 ## Finite mixtures
 
-Weights: `simplex[K] theta` with a Dirichlet prior. Component locations: `ordered[K] mu` (or `positive_ordered`) **in the program**. Sorting means after sampling does not constrain the sampler.
-
-Likelihood: `log_mix` or `log_sum_exp` of component `*_lpdf` terms. Use `_lpdf`, not `_lupdf`.
-
-Label switching looks like bad R-hat. More draws will not fix it. If only the posterior predictive matters, swapped labels are harmless. Component-wise summaries are not.
+Weights: `simplex[K] theta` with a Dirichlet prior.
+Likelihood: per-observation `log_mix` (or `log_sum_exp` of component `*_lpdf` terms; use `_lpdf`, not `_lupdf`).
+When component summaries matter, `ordered[K]` (or `positive_ordered`) in the program is the default: bad component R-hat with `lp__` R-hat ≈ 1 is label switching — use `ordered`.
+Sorting after sampling does not constrain the sampler.
+Post-hoc relabel only for 1-D locations.
+If only the posterior predictive matters, swapped labels are harmless.
 
 ## JAX
 
-Put the order constraint **inside** `constrain` (ordered transform + Jacobian). Do not `jnp.sort` the posterior after the fact.
+Put the order constraint **inside** `constrain` (ordered transform + Jacobian) when component summaries matter. Do not `jnp.sort` the posterior after the fact; post-hoc relabel only for 1-D locations.
 
 ## Censoring, truncation, and misclassification
 
